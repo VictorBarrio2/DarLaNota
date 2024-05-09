@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/et_nombreAlumnoRa"
+        android:layout_width="290dp"
+        android:layout_height="65dp"
+        android:background="@drawable/borde_negro"
+        android:ems="10"
+        android:hint="Introduce Nombre"
+        android:inputType="text"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textColorHint="#000000"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.57"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.33" />
+
+    <EditText
+        android:id="@+id/et_notaAlumnoRa"
+        android:layout_width="290dp"
+        android:layout_height="65dp"
+        android:background="@drawable/borde_negro"
+        android:ems="10"
+        android:hint="Introduce Nota"
+        android:inputType="number"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textColorHint="#000000"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/bto_sumar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.504"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_nombreAlumnoRa"
+        app:layout_constraintVertical_bias="0.797" />
+
+    <Button
+        android:id="@+id/bto_sumar"
+        android:layout_width="307dp"
+        android:layout_height="65dp"
+        android:backgroundTint="#C30B0F"
+        android:text="Sumar"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_nombreAlumnoRa"
+        app:layout_constraintVertical_bias="0.222" />
+
+    <Button
+        android:id="@+id/bto_restar"
+        android:layout_width="307dp"
+        android:layout_height="65dp"
+        android:backgroundTint="#C30B0F"
+        android:text="Restar"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.698" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
