@@ -7,6 +7,7 @@ import android.widget.CheckBox
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
+import com.example.darlanota.clases.Alumno
 
 class PaginaInstrumentos : AppCompatActivity() {
 
@@ -17,10 +18,14 @@ class PaginaInstrumentos : AppCompatActivity() {
     private lateinit var cb_guitarra : CheckBox
     private lateinit var cb_canto : CheckBox
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.instrumentos_layout)
 
+        val id = intent.getStringExtra("ID")
+        val nick = intent.getStringExtra("NICK")
+        val contra = intent.getStringExtra("CONTRA")
 
         cb_piano = findViewById(R.id.cb_piano)
         cb_bateria = findViewById(R.id.cb_bateria)
@@ -33,6 +38,17 @@ class PaginaInstrumentos : AppCompatActivity() {
             if (!cb_piano.isChecked && !cb_bateria.isChecked && !cb_guitarra.isChecked && !cb_canto.isChecked) {
                 Toast.makeText(this, "Debes seleccionar al menos un instrumento", Toast.LENGTH_SHORT).show()
             } else {
+                val instrumentos = ArrayList<String>()
+
+                if (cb_piano.isChecked) instrumentos.add("Piano")
+                if (cb_bateria.isChecked) instrumentos.add("Batería")
+                if (cb_guitarra.isChecked) instrumentos.add("Guitarra")
+                if (cb_canto.isChecked) instrumentos.add("Canto")
+
+                val alumno = Alumno(id.toString(), contra.toString(), nick.toString(), instrumentos, 0)
+                alumno.subirAFirestore()
+
+                finishAffinity()
                 val intent = Intent(this, PaginaActividadAlumno::class.java)
                 startActivity(intent)
             }
@@ -43,7 +59,5 @@ class PaginaInstrumentos : AppCompatActivity() {
 
     private fun setup(email:String, provider:String){
         title = "Inicio"
-
-
     }
 }

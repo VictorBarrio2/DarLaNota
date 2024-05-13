@@ -6,9 +6,10 @@ import java.io.File
 import java.io.IOException
 
 open class Usuario(
-    val id_alumno: Int,
+    val id: String,
     var contrasena: String,
-    val nombre: String
+    val nombre: String,
+    val tipo: String
 ) {
 
 }

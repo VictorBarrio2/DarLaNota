@@ -1,30 +1,32 @@
 package com.example.darlanota.clases
 
-import android.app.Activity
-import com.example.darlanota.modelos.PaginaInstrumentos
-import java.io.File
+import com.example.darlanota.clases.FireStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-open class Alumno(
-    id_alumno: Int,
+class Alumno(
+    id: String,
     contrasena: String,
     nombre: String,
-    private var instrumentos: ArrayList<String>,
-    private var puntuacion: Float
-) : Usuario(id_alumno, contrasena, nombre) {
+    val instrumentos: ArrayList<String>,
+    var puntuacion: Int = 0  // Valor predeterminado para puntuación
+) : Usuario(id, contrasena, nombre, "alumno") {
 
-    open fun cambiarInstrumento(i: ArrayList<String>) {
-        instrumentos = i
-    }
+    // Método para añadir este alumno a Firestore usando la clase FireStore
+    fun subirAFirestore() {
+        // Crea una instancia de FireStore
+        val firestore = FireStore()
 
-    open fun restarPuntuacion(p: Float) {
-        puntuacion -= p // Restar el valor proporcionado a la puntuación actual
-    }
-
-    open fun sumarPuntuacion(p: Float) {
-        puntuacion += p // Sumar el valor proporcionado a la puntuación actual
-    }
-
-    open fun cambiarContra(c: String) {
-        contrasena = c // Sumar el valor proporcionado a la puntuación actual
+        // Ejecutar en una corutina para manejar la operación asíncrona
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Añadir este Alumno usando el método de la clase FireStore
+                firestore.añadirUsuario(this@Alumno)
+                println("Alumno añadido con éxito a través de FireStore")
+            } catch (e: Exception) {
+                println("Error al añadir alumno: ${e.localizedMessage}")
+            }
+        }
     }
 }

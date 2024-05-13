@@ -52,10 +52,15 @@ class PaginaRegistro : AppCompatActivity() {
         // Creating user account with email and password on Firebase
         auth.createUserWithEmailAndPassword(nick, contra).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
-                // Sign in success, update UI with the signed-in user's information
+                var id = task.result?.user?.uid // Obtiene el ID del usuario de Firebase
                 Toast.makeText(this, "Registro exitoso.", Toast.LENGTH_SHORT).show()
+
                 val intent = Intent(this, PaginaInstrumentos::class.java)
+                intent.putExtra("ID", id)
+                intent.putExtra("NICK", nick)
+                intent.putExtra("CONTRA", contra)
                 startActivity(intent)
+
 
             } else {
                 // If sign in fails, display a message to the user.
