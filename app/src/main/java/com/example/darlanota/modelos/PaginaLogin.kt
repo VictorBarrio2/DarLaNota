@@ -8,10 +8,8 @@ import android.widget.CheckBox
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import com.example.darlanota.R
-import com.example.darlanota.modelos.PaginaRegistro
-import com.example.darlanota.modelos.PaginaActividadAlumno
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -29,8 +27,8 @@ class PaginaLogin : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login_layout)
+        FirebaseApp.initializeApp(this)
 
-        // Inicializar Firebase Auth y Firestore
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
@@ -41,44 +39,61 @@ class PaginaLogin : AppCompatActivity() {
         cb_inicioAutomatico = findViewById(R.id.cb_guardarSesion)
 
         sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
+        cargarCredenciales()
+    }
 
-        // Verificar si hay credenciales guardadas y establecerlas en los campos correspondientes
-        if (sharedPreferences.getBoolean("guardar_credenciales", false)) {
+    private fun cargarCredenciales() {
+        val guardarCredenciales = sharedPreferences.getBoolean("guardar_credenciales", false)
+        if (guardarCredenciales) {
             val email = sharedPreferences.getString("nick", "")
             val password = sharedPreferences.getString("contraseña", "")
             et_nick.setText(email)
             et_contra.setText(password)
             cb_inicioAutomatico.isChecked = true
 
-            // Intentar iniciar sesión automáticamente si hay credenciales guardadas
-            iniciarSesion(email, password)
+            // Intentar iniciar sesión automáticamente si hay credenciales guardadas y el checkbox está marcado
+            if (cb_inicioAutomatico.isChecked) {
+                iniciarSesion(email, password)
+            }
         }
 
         bto_inicioSesion.setOnClickListener {
             val email = et_nick.text.toString().trim()
             val password = et_contra.text.toString().trim()
+            if (cb_inicioAutomatico.isChecked) {
+                val editor = sharedPreferences.edit()
+                editor.putBoolean("guardar_credenciales", true)
+                editor.putString("nick", email)
+                editor.putString("contraseña", password)
+                editor.apply()
+            } else {
+                sharedPreferences.edit().clear().apply()
+            }
             iniciarSesion(email, password)
         }
 
         bto_registro.setOnClickListener {
-            val intent = Intent(this, PaginaRegistro::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, PaginaRegistro::class.java))
         }
     }
 
     private fun iniciarSesion(email: String?, password: String?) {
-        if (!email.isNullOrEmpty() && !password.isNullOrEmpty()) {
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        startActivity(Intent(this, PaginaActividadAlumno::class.java))
-                        finish() // Finaliza la actividad actual para evitar que el usuario vuelva atrás
-                    } else {
-                        mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
+
+        if(email == "profe"){
+            startActivity(Intent(this, PaginaActividadProfe::class.java))
+        }else{
+            if (!email.isNullOrEmpty() && !password.isNullOrEmpty()) {
+                auth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            startActivity(Intent(this, PaginaActividadAlumno::class.java))
+                        } else {
+                            mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
+                        }
                     }
-                }
-        } else {
-            mostrarAlerta("Campos incompletos", "Por favor, complete todos los campos.")
+            } else {
+                mostrarAlerta("Campos incompletos", "Por favor, complete todos los campos.")
+            }
         }
     }
 

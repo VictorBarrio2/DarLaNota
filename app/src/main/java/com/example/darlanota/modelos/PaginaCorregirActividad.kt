@@ -49,7 +49,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
         }
 
         iv_perfil.setOnClickListener {
-            val intent = Intent(this, PaginaPerfil::class.java)
+            val intent = Intent(this, PaginaPerfilProfe::class.java)
             startActivity(intent)
         }
 

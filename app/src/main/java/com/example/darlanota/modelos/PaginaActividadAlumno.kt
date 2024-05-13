@@ -40,7 +40,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
         }
 
         iv_perfil.setOnClickListener {
-            val intent = Intent(this, PaginaPerfil::class.java)
+            val intent = Intent(this, PaginaPerfilAlumno::class.java)
             startActivity(intent)
         }
     }

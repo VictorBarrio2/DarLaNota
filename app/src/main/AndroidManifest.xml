@@ -13,6 +13,7 @@
         android:theme="@style/Theme.DarLaNota"
         tools:targetApi="31">
 
+
         <activity
             android:name=".modelos.PaginaLogin"
             android:exported="true"
@@ -32,7 +33,12 @@
         </activity>
 
         <activity
-            android:name=".modelos.PaginaPerfil"
+            android:name=".modelos.PaginaPerfilAlumno"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity
+            android:name=".modelos.PaginaPerfilProfe"
             android:screenOrientation="portrait">
         </activity>
 

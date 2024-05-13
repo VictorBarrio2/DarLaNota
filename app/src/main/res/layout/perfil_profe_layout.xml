@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/iv_actividadesPerfil"
+        android:id="@+id/iv_actividadesPerfilProfe"
         android:layout_width="90dp"
         android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -18,7 +18,7 @@
         app:srcCompat="@drawable/actividades" />
 
     <ImageView
-        android:id="@+id/iv_rankingPerfil"
+        android:id="@+id/iv_rankingPerfilProfe"
         android:layout_width="90dp"
         android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -30,7 +30,7 @@
         app:srcCompat="@drawable/ranking" />
 
     <TextView
-        android:id="@+id/tv_nickPerfil"
+        android:id="@+id/tv_nickPerfilProfe"
         android:layout_width="298dp"
         android:layout_height="42dp"
         android:text="Nombre Usuario"
@@ -38,13 +38,13 @@
         android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintHorizontal_bias="0.539"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.336" />
+        app:layout_constraintVertical_bias="0.455" />
 
     <EditText
-        android:id="@+id/et_contraPerfil"
+        android:id="@+id/et_contraPerfilProfe"
         android:layout_width="281dp"
         android:layout_height="52dp"
         android:background="@drawable/borde_negro"
@@ -59,24 +59,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.462" />
+        app:layout_constraintVertical_bias="0.592" />
 
     <Button
-        android:id="@+id/bto_cambiarInstrumento"
-        android:layout_width="289dp"
-        android:layout_height="68dp"
-        android:backgroundTint="#C50B0F"
-        android:text="Cambiar Instrumento"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.603" />
-
-    <Button
-        android:id="@+id/bto_cambiarContra"
+        android:id="@+id/bto_cambiarContraProfe"
         android:layout_width="288dp"
         android:layout_height="65dp"
         android:backgroundTint="#C50B0F"
@@ -96,14 +82,13 @@
         android:layout_height="186dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.032"
+        app:layout_constraintVertical_bias="0.174"
         app:srcCompat="@drawable/logo_perfil" />
 
     <ImageView
-        android:id="@+id/iv_salir"
+        android:id="@+id/iv_salirProfe"
         android:layout_width="50dp"
         android:layout_height="47dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -115,7 +100,7 @@
         app:srcCompat="@drawable/salir" />
 
     <ImageView
-        android:id="@+id/iv_notaPerfil"
+        android:id="@+id/iv_notaPerfilProfe"
         android:layout_width="91dp"
         android:layout_height="95dp"
         app:layout_constraintBottom_toBottomOf="parent"

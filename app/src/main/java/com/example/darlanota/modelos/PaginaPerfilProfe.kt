@@ -10,9 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.darlanota.R
 
-class PaginaPerfil : AppCompatActivity() {
+class PaginaPerfilProfe : AppCompatActivity() {
 
-    private lateinit var bto_instrumento: Button
     private lateinit var bto_contra: Button
     private lateinit var iv_ranking: ImageView
     private lateinit var iv_actividades: ImageView
@@ -22,15 +21,14 @@ class PaginaPerfil : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.perfil_layout) // Mueve setContentView aquí
+        setContentView(R.layout.perfil_profe_layout)
 
-        iv_ranking = findViewById(R.id.iv_rankingPerfil)
-        iv_actividades = findViewById(R.id.iv_actividadesPerfil)
-        bto_contra = findViewById(R.id.bto_cambiarContra)
-        bto_instrumento = findViewById(R.id.bto_cambiarInstrumento)
-        iv_nota = findViewById(R.id.iv_notaPerfil) // Inicializa iv_nota aquí
-        et_contra = findViewById(R.id.et_contraPerfil)
-        iv_cerrarSesion = findViewById(R.id.iv_salir)
+        iv_ranking = findViewById(R.id.iv_rankingPerfilProfe)
+        iv_actividades = findViewById(R.id.iv_actividadesPerfilProfe)
+        bto_contra = findViewById(R.id.bto_cambiarContraProfe)
+        iv_nota = findViewById(R.id.iv_notaPerfilProfe)
+        et_contra = findViewById(R.id.et_contraPerfilProfe)
+        iv_cerrarSesion = findViewById(R.id.iv_salirProfe)
 
         val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
         val isDarkModeEnabled = sharedPreferences.getBoolean("tema_oscuro_activado", false)
@@ -40,11 +38,6 @@ class PaginaPerfil : AppCompatActivity() {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             iv_nota.setImageResource(R.drawable.sol)
-        }
-
-        bto_instrumento.setOnClickListener {
-            val intent = Intent(this, PaginaInstrumentos::class.java)
-            startActivity(intent)
         }
 
         bto_contra.setOnClickListener {
@@ -57,19 +50,17 @@ class PaginaPerfil : AppCompatActivity() {
 
 
         iv_actividades.setOnClickListener {
-            val intent = Intent(this, PaginaActividadAlumno::class.java)
+            val intent = Intent(this, PaginaActividadProfe::class.java)
             startActivity(intent)
         }
 
         iv_ranking.setOnClickListener {
-            val intent = Intent(this, PaginaRankingAlumno::class.java)
+            val intent = Intent(this, PaginaRankingProfe::class.java)
             startActivity(intent)
         }
 
         iv_nota.setOnClickListener {
-            // Guarda la preferencia del tema cuando se hace clic en iv_nota
             guardarPreferenciaTema(!isDarkModeEnabled)
-            // Alterna el tema
             alternarTema()
         }
 
@@ -81,13 +72,12 @@ class PaginaPerfil : AppCompatActivity() {
                 putBoolean("guardar_credenciales", false)
                 apply()
             }
-            finishAffinity() // Finaliza todas las actividades en la pila
+            finishAffinity()
             val intent = Intent(this, PaginaLogin::class.java)
             startActivity(intent)
         }
     }
 
-    // Función para guardar la preferencia del tema en SharedPreferences
     private fun guardarPreferenciaTema(temaOscuroActivado: Boolean) {
         val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -95,17 +85,13 @@ class PaginaPerfil : AppCompatActivity() {
         editor.apply()
     }
 
-    // Función para alternar entre el tema claro y oscuro
     private fun alternarTema() {
         val temaOscuroActivado = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
         if (temaOscuroActivado) {
-            // Cambiar al modo claro
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         } else {
-            // Cambiar al modo oscuro
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         }
-        // Reiniciar la actividad para aplicar los cambios de tema
         recreate()
     }
 }
