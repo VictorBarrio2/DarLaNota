@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "136402768967",
-    "project_id": "prueba1-f0c13",
-    "storage_bucket": "prueba1-f0c13.appspot.com"
+    "project_number": "731258028771",
+    "project_id": "darlanota-118bb",
+    "storage_bucket": "darlanota-118bb.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:136402768967:android:a7873ee591d27662d2cd62",
+        "mobilesdk_app_id": "1:731258028771:android:38ae3b020bf5917b39bbd6",
         "android_client_info": {
           "package_name": "com.example.darlanota"
         }
@@ -15,45 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB986wUhKLWocK4dfKHcl-DFOFIaBwsuhM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:136402768967:android:a5545280b2e69d54d2cd62",
-        "android_client_info": {
-          "package_name": "com.example.horas"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB986wUhKLWocK4dfKHcl-DFOFIaBwsuhM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:136402768967:android:30affd4ca1fca48ed2cd62",
-        "android_client_info": {
-          "package_name": "com.example.myapplication"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB986wUhKLWocK4dfKHcl-DFOFIaBwsuhM"
+          "current_key": "AIzaSyCqAVfjP86P1wleKKYGE7Pduk5_A1xIRM0"
         }
       ],
       "services": {

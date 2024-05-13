@@ -17,6 +17,7 @@ class PaginaPerfil : AppCompatActivity() {
     private lateinit var iv_ranking: ImageView
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_nota: ImageView
+    private lateinit var iv_cerrarSesion: ImageView
     private lateinit var et_contra: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +30,7 @@ class PaginaPerfil : AppCompatActivity() {
         bto_instrumento = findViewById(R.id.bto_cambiarInstrumento)
         iv_nota = findViewById(R.id.iv_notaPerfil) // Inicializa iv_nota aquí
         et_contra = findViewById(R.id.et_contraPerfil)
+        iv_cerrarSesion = findViewById(R.id.iv_salir)
 
         val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
         val isDarkModeEnabled = sharedPreferences.getBoolean("tema_oscuro_activado", false)
@@ -69,6 +71,19 @@ class PaginaPerfil : AppCompatActivity() {
             guardarPreferenciaTema(!isDarkModeEnabled)
             // Alterna el tema
             alternarTema()
+        }
+
+        iv_cerrarSesion.setOnClickListener {
+            val sharedPreferences = getSharedPreferences("login_preferences", MODE_PRIVATE)
+            with(sharedPreferences.edit()) {
+                remove("nick")
+                remove("contraseña")
+                putBoolean("guardar_credenciales", false)
+                apply()
+            }
+            finishAffinity() // Finaliza todas las actividades en la pila
+            val intent = Intent(this, PaginaLogin::class.java)
+            startActivity(intent)
         }
     }
 
