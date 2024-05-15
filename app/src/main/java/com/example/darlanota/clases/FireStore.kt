@@ -1,9 +1,10 @@
 package com.example.darlanota.clases
 
 import android.util.Log
-import com.example.darlanota.clases.Alumno
+import android.widget.Toast
+import com.example.darlanota.modelos.PaginaLogin
+import com.google.api.Context
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -16,47 +17,45 @@ class FireStore {
     // Método para añadir un usuario a la base de datos.
     // Usuario puede ser un Alumno o un Profesor.
     // El tipo de usuario se maneja internamente según la clase del objeto.
-    suspend fun añadirUsuario(usuario: Usuario) = withContext(Dispatchers.IO) {
+    suspend fun añadirUsuario(id: String, usuario: Usuario) = withContext(Dispatchers.IO) {
         try {
-            db.collection("usuarios").add(usuario).await()
-            "Usuario añadido con éxito"
+            // Usa 'set' en lugar de 'add' para poder especificar el ID del documento.
+            db.collection("usuarios").document(id).set(usuario).await()
+            "Usuario añadido con éxito con ID: $id"
         } catch (e: Exception) {
             Log.e("FireStore", "Error al añadir usuario: ${e.localizedMessage}", e)
             "Error al añadir usuario: ${e.localizedMessage}"
         }
     }
 
-    // Método para obtener todos los alumnos de la base de datos.
-    // Filtra por el campo 'tipo' que debe ser igual a "alumno".
-    suspend fun obtenerAlumnos(): List<Alumno> = withContext(Dispatchers.IO) {
+
+    // Método para buscar un usuario por su nombre en Firestore.
+    suspend fun buscarAlumnoPorId(id: String): Alumno? = withContext(Dispatchers.IO) {
+        val db = FirebaseFirestore.getInstance()
         try {
-            // Realiza la consulta a Firestore, espera por los resultados, y los transforma en objetos Alumno.
-            db.collection("usuarios")
-                .whereEqualTo("tipo", "alumno")
-                .get()
-                .await()
-                .documents
-                .mapNotNull { it.toObject<Alumno>() }
+            val documento = db.collection("usuarios").document(id).get().await()
+            if (documento.exists() && documento.getString("tipo") == "alumno") {
+                documento.toObject<Alumno>()
+            } else {
+                null
+            }
         } catch (e: Exception) {
-            Log.e("FireStore", "Error al obtener alumnos: ${e.localizedMessage}", e)
-            emptyList<Alumno>()
+            null
         }
     }
 
-    // Método para obtener todos los profesores de la base de datos.
-    // Similar al método de obtener alumnos, pero filtra por "profesor".
-    suspend fun obtenerProfesores(): List<Profesor> = withContext(Dispatchers.IO) {
+    suspend fun buscarProfesorPorId(id: String): Profesor? = withContext(Dispatchers.IO) {
+        val db = FirebaseFirestore.getInstance()
         try {
-            // Realiza la consulta a Firestore, espera por los resultados, y los transforma en objetos Profesor.
-            db.collection("usuarios")
-                .whereEqualTo("tipo", "profesor")
-                .get()
-                .await()
-                .documents
-                .mapNotNull { it.toObject<Profesor>() }
+            val documento = db.collection("usuarios").document(id).get().await()
+            if (documento.exists() && documento.getString("tipo") == "profesor") {
+                documento.toObject<Profesor>()
+            } else {
+                null
+            }
         } catch (e: Exception) {
-            Log.e("FireStore", "Error al obtener profesores: ${e.localizedMessage}", e)
-            emptyList<Profesor>()
+            null
         }
     }
+
 }

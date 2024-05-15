@@ -45,11 +45,14 @@ class PaginaInstrumentos : AppCompatActivity() {
                 if (cb_guitarra.isChecked) instrumentos.add("Guitarra")
                 if (cb_canto.isChecked) instrumentos.add("Canto")
 
-                val alumno = Alumno(id.toString(), contra.toString(), nick.toString(), instrumentos, 0)
-                alumno.subirAFirestore()
+// Assuming 'contra' and 'nick' are correctly defined as String types before this snippet
+                val alumno = Alumno(contra.toString(), nick.toString(), "alumno", instrumentos, 0)
+
+                alumno.subirAlumnoFirestore(id.toString())
 
                 finishAffinity()
                 val intent = Intent(this, PaginaActividadAlumno::class.java)
+                intent.putExtra("ID", id)
                 startActivity(intent)
             }
         }

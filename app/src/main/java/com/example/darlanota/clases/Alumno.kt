@@ -6,24 +6,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class Alumno(
-    id: String,
-    contrasena: String,
-    nombre: String,
-    val instrumentos: ArrayList<String>,
-    var puntuacion: Int = 0  // Valor predeterminado para puntuación
-) : Usuario(id, contrasena, nombre, "alumno") {
+    contrasena: String = "",
+    nombre: String = "",
+    tipo: String = "alumno",
+    var instrumentos: ArrayList<String> = ArrayList(),
+    var puntuacion: Int = 0
+) : Usuario(contrasena, nombre, tipo)
+ {
 
     // Método para añadir este alumno a Firestore usando la clase FireStore
-    fun subirAFirestore() {
+    fun subirAlumnoFirestore(id: String) {
         // Crea una instancia de FireStore
         val firestore = FireStore()
 
         // Ejecutar en una corutina para manejar la operación asíncrona
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Añadir este Alumno usando el método de la clase FireStore
-                firestore.añadirUsuario(this@Alumno)
-                println("Alumno añadido con éxito a través de FireStore")
+                // Añadir este Alumno usando el método de la clase FireStore que acepta un ID y un usuario
+                firestore.añadirUsuario(id, this@Alumno)
+                println("Alumno añadido con éxito a través de FireStore con ID: $id")
             } catch (e: Exception) {
                 println("Error al añadir alumno: ${e.localizedMessage}")
             }

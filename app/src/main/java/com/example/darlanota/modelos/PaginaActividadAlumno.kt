@@ -2,6 +2,7 @@ package com.example.darlanota.modelos
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,8 @@ class PaginaActividadAlumno : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actividades_alumno_layout)
+
+        val id = intent.getStringExtra("ID")
 
         iv_ranking = findViewById(R.id.iv_rankingAcAl)
         iv_actividades = findViewById(R.id.iv_actividadesAcAl)

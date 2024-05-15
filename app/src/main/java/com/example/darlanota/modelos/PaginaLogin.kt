@@ -6,12 +6,22 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
+import com.example.darlanota.clases.Alumno
+import com.example.darlanota.clases.FireStore
+import com.example.darlanota.clases.Profesor
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class PaginaLogin : AppCompatActivity() {
 
@@ -23,6 +33,8 @@ class PaginaLogin : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var fireStore : FireStore
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +43,7 @@ class PaginaLogin : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-
+        fireStore = FireStore()
         et_nick = findViewById(R.id.et_nick)
         et_contra = findViewById(R.id.et_contra)
         bto_inicioSesion = findViewById(R.id.bto_iniciarSesion)
@@ -78,24 +90,56 @@ class PaginaLogin : AppCompatActivity() {
     }
 
     private fun iniciarSesion(email: String?, password: String?) {
+        if (!email.isNullOrEmpty() && !password.isNullOrEmpty()) {
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        val id = task.result?.user?.uid.toString()
 
-        if(email == "profe"){
-            startActivity(Intent(this, PaginaActividadProfe::class.java))
-        }else{
-            if (!email.isNullOrEmpty() && !password.isNullOrEmpty()) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            startActivity(Intent(this, PaginaActividadAlumno::class.java))
-                        } else {
-                            mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val db = FirebaseFirestore.getInstance()
+                            val documento = db.collection("usuarios").document(id).get().await()
+                            if (documento.exists()) {
+                                when (documento.getString("tipo")) {
+                                    "alumno" -> {
+                                        val alumno = documento.toObject<Alumno>()
+                                        if (alumno != null) {
+                                            val intent = Intent(this@PaginaLogin, PaginaActividadAlumno::class.java)
+                                            intent.putExtra("ID", id)
+                                            startActivity(intent)
+                                        } else {
+                                            mostrarAlerta("Error de inicio de sesión", "Usuario no válido.")
+                                        }
+                                    }
+                                    "profesor" -> {
+                                        val profesor = documento.toObject<Profesor>()
+                                        if (profesor != null) {
+                                            val intent = Intent(this@PaginaLogin, PaginaActividadProfe::class.java)
+                                            intent.putExtra("ID", id)
+                                            startActivity(intent)
+                                        } else {
+                                            mostrarAlerta("Error de inicio de sesión", "Usuario no válido.")
+                                        }
+                                    }
+                                    else -> mostrarAlerta("Error de inicio de sesión", "Tipo de usuario desconocido.")
+                                }
+                            } else {
+                                mostrarAlerta("Error de inicio de sesión", "Usuario no encontrado en la base de datos.")
+                            }
                         }
+
+                    } else {
+                        mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
                     }
-            } else {
-                mostrarAlerta("Campos incompletos", "Por favor, complete todos los campos.")
-            }
+                }
+        } else {
+            mostrarAlerta("Campos incompletos", "Por favor, complete todos los campos.")
         }
     }
+
+
+
+
 
     private fun mostrarAlerta(titulo: String, mensaje: String) {
         val builder = AlertDialog.Builder(this)
