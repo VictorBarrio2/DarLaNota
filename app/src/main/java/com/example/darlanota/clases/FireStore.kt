@@ -17,7 +17,7 @@ class FireStore {
     // Método para añadir un usuario a la base de datos.
     // Usuario puede ser un Alumno o un Profesor.
     // El tipo de usuario se maneja internamente según la clase del objeto.
-    suspend fun añadirUsuario(id: String, usuario: Usuario) = withContext(Dispatchers.IO) {
+    suspend fun altaUsuario(id: String, usuario: Usuario) = withContext(Dispatchers.IO) {
         try {
             // Usa 'set' en lugar de 'add' para poder especificar el ID del documento.
             db.collection("usuarios").document(id).set(usuario).await()
@@ -27,6 +27,18 @@ class FireStore {
             "Error al añadir usuario: ${e.localizedMessage}"
         }
     }
+
+    suspend fun altaActividad(actividad: Actividad) = withContext(Dispatchers.IO) {
+        try {
+            // Añade un nuevo documento a la colección 'actividades' con un ID generado automáticamente.
+            val documento = db.collection("actividades").add(actividad).await()
+            "Actividad añadida con éxito, ID: ${documento.id}"
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error al añadir actividad: ${e.localizedMessage}", e)
+            "Error al añadir actividad: ${e.localizedMessage}"
+        }
+    }
+
 
 
     // Método para buscar un usuario por su nombre en Firestore.

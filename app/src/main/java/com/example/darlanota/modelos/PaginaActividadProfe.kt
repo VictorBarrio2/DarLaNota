@@ -29,6 +29,8 @@ class PaginaActividadProfe: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actividades_profesor_layout)
 
+        val id = intent.getStringExtra("ID")
+
         iv_activiades = findViewById(R.id.iv_actividadesProfe)
         iv_ranking = findViewById(R.id.iv_rankingProfe)
         iv_perfil = findViewById(R.id.iv_perfilProfe)
@@ -63,6 +65,7 @@ class PaginaActividadProfe: AppCompatActivity() {
 
         bto_altaActividad.setOnClickListener {
             val intent = Intent(this, PaginaAltaActividad::class.java)
+            intent.putExtra("ID", id)
             startActivity(intent)
         }
 

@@ -23,7 +23,7 @@ class Alumno(
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // Añadir este Alumno usando el método de la clase FireStore que acepta un ID y un usuario
-                firestore.añadirUsuario(id, this@Alumno)
+                firestore.altaUsuario(id, this@Alumno)
                 println("Alumno añadido con éxito a través de FireStore con ID: $id")
             } catch (e: Exception) {
                 println("Error al añadir alumno: ${e.localizedMessage}")

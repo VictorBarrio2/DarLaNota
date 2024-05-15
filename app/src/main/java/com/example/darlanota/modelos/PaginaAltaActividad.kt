@@ -1,13 +1,22 @@
 package com.example.darlanota.modelos
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
+import com.example.darlanota.clases.Actividad
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.Calendar
 
 class PaginaAltaActividad : AppCompatActivity() {
@@ -20,6 +29,7 @@ class PaginaAltaActividad : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.alta_actividad_layout)
+        FirebaseApp.initializeApp(this)
 
         bto_subirActividad = findViewById(R.id.bto_subirActividad)
         bto_fecha = findViewById(R.id.bto_fecha)
@@ -27,29 +37,49 @@ class PaginaAltaActividad : AppCompatActivity() {
         et_des = findViewById(R.id.et_descripcionAlta)
         fechaSeleccionada = findViewById(R.id.tv_fecha)
 
+        val id_profe = intent.getStringExtra("ID") ?: ""  // No default to "0", should handle null properly.
 
         bto_subirActividad.setOnClickListener {
-            if(et_titulo.text.toString().equals("") || et_des.text.toString().equals("") || fechaSeleccionada.toString().equals("--/--/----")){
+            val titulo = et_titulo.text.toString().trim()
+            val descripcion = et_des.text.toString().trim()
+            val fechaFin = fechaSeleccionada.text.toString()
+
+            if (titulo.isEmpty() || descripcion.isEmpty() || fechaFin == "--/--/----") {
                 Toast.makeText(this, "Faltan campos por seleccionar", Toast.LENGTH_SHORT).show()
-            }else{
-
+            } else {
+                val nuevaActividad = Actividad(descripcion, fechaFin, titulo, id_profe)
+                CoroutineScope(Dispatchers.Main).launch {
+                    try {
+                        altaActividad(nuevaActividad)
+                        Toast.makeText(this@PaginaAltaActividad, "Actividad creada", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@PaginaAltaActividad, PaginaActividadProfe::class.java))
+                    } catch (e: Exception) {
+                        Log.e("Firestore", "Error al añadir actividad: ${e.localizedMessage}")
+                    }
+                }
             }
-
         }
 
         bto_fecha.setOnClickListener {
-            // Mostrar el DatePickerDialog
-            val calendar = Calendar.getInstance()
-            val year = calendar.get(Calendar.YEAR)
-            val month = calendar.get(Calendar.MONTH)
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
-            val datePickerDialog = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
-                // Cambio en el formato de la fecha: día/mes/año
-                fechaSeleccionada.setText("$dayOfMonth/${monthOfYear + 1}/$year")
-                // Mostrar la fecha seleccionada con un Toast
-                Toast.makeText(this, "Fecha seleccionada: ${fechaSeleccionada.text.toString()}", Toast.LENGTH_LONG).show()
-            }, year, month, day)
-            datePickerDialog.show()
+            mostrarDatePicker()
         }
     }
+
+    private fun mostrarDatePicker() {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
+            fechaSeleccionada.text = String.format("%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    private suspend fun altaActividad(actividad: Actividad) {
+        val db = FirebaseFirestore.getInstance()
+        try {
+            db.collection("actividades").add(actividad).await()
+            Log.d("Firestore", "Actividad añadida correctamente")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al añadir actividad: ${e.localizedMessage}", e)
+        }
+    }
+
 }
