@@ -1,56 +1,36 @@
 package com.example.darlanota.modelos
 
 import android.content.Intent
-import android.view.ContextMenu
-import android.view.ContextMenu.ContextMenuInfo
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnCreateContextMenuListener
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
+import com.example.darlanota.clases.Actividad
 
-class AdaptadorAlumno internal constructor(private val dataList: List<String>) :
+class AdaptadorAlumno(private val dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DatosHolder {
-        // Inflar la vista del elemento de la lista
-        val inflador = LayoutInflater.from(parent.context)
-        val vista: View = inflador.inflate(R.layout.item_layout, parent, false)
-        return DatosHolder(vista)
+        val inflater = LayoutInflater.from(parent.context)
+        val view: View = inflater.inflate(R.layout.item_layout, parent, false)
+        return DatosHolder(view)
     }
 
     override fun onBindViewHolder(holder: DatosHolder, position: Int) {
-        // Vincular datos a las vistas
-        holder.textView.text = dataList[position] // Reemplazar con datos reales
+        val actividad = dataList[position]
+        holder.titulo.text = actividad.titulo
+        holder.itemView.setOnClickListener {
+            val intent = Intent(holder.itemView.context, PaginaVerActividad::class.java)
+            intent.putExtra("ACTIVIDAD_ID", actividad.id)
+            holder.itemView.context.startActivity(intent)
+        }
     }
 
-    override fun getItemCount(): Int {
-        // Devolver la cantidad de elementos en la lista de datos
-        return dataList.size
-    }
+    override fun getItemCount(): Int = dataList.size
 
-    inner class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-        OnCreateContextMenuListener {
-        var textView: TextView
-
-        init {
-            // Inicializar TextView
-            textView = itemView.findViewById(R.id.tv_tituloActividad)
-
-            textView.setOnClickListener {
-                val intent = Intent(itemView.context, PaginaVerActividad::class.java)
-                itemView.context.startActivity(intent)
-            }
-
-            // Establecer el listener para el menú contextual
-            itemView.setOnCreateContextMenuListener(this)
-        }
-
-        override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenuInfo?) {
-            TODO("Not yet implemented")
-        }
-
+    class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var titulo: TextView = itemView.findViewById(R.id.tv_tituloActividad)
     }
 }

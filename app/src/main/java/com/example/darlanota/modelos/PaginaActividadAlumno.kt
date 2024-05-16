@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
+import com.example.darlanota.clases.Actividad
+import com.google.firebase.firestore.FirebaseFirestore
 
 class PaginaActividadAlumno : AppCompatActivity() {
 
@@ -27,15 +29,6 @@ class PaginaActividadAlumno : AppCompatActivity() {
         iv_perfil = findViewById(R.id.iv_perfilAcAl)
         reciclador = findViewById(R.id.rv_reciclador) // Inicializa reciclador
 
-        // Crea una lista de datos de ejemplo
-        val dataList = listOf("Actividad 1", "Actividad 2", "Actividad 3" , "Actividad 4", "Actividad 5" , "Actividad 6", "Actividad 7")
-
-        // Crea el adaptador y pasa la lista de datos
-        adaptadorAlumno = AdaptadorAlumno(dataList)
-
-        // Configura el LinearLayoutManager y el adaptador para el RecyclerView
-        reciclador.layoutManager = LinearLayoutManager(this)
-        reciclador.adapter = adaptadorAlumno
 
         iv_ranking.setOnClickListener {
             val intent = Intent(this, PaginaRankingAlumno::class.java)
@@ -46,5 +39,29 @@ class PaginaActividadAlumno : AppCompatActivity() {
             val intent = Intent(this, PaginaPerfilAlumno::class.java)
             startActivity(intent)
         }
+
+        cargarActividades()
     }
+
+    private fun cargarActividades() {
+        val db = FirebaseFirestore.getInstance()
+        val actividadesList = mutableListOf<Actividad>()
+
+        db.collection("actividades")
+            .get()
+            .addOnSuccessListener { documentos ->
+                for (documento in documentos) {
+                    val actividad = documento.toObject(Actividad::class.java)
+                    actividad.id = documento.id
+                    actividadesList.add(actividad)
+                }
+                adaptadorAlumno = AdaptadorAlumno(actividadesList)
+                reciclador.layoutManager = LinearLayoutManager(this)
+                reciclador.adapter = adaptadorAlumno
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error al cargar actividades: ${exception.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
+    }
+
 }
