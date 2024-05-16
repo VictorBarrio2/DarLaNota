@@ -15,14 +15,14 @@ data class Actividad(
     var entregas: MutableList<Entrega> = mutableListOf()  // Asegúrate de que `Entrega` también tenga un constructor sin argumentos si es necesario.
 ) {
     fun subirActividadFirestore() {
-        // Crea una instancia de FireStore
-        val firestore = FirebaseFirestore.getInstance()
+        val firestore = FireStore()
 
         // Ejecutar en una corutina para manejar la operación asíncrona
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                firestore.collection("actividades").add(this@Actividad).await()
-                println("Actividad añadida con éxito a través de FireStore")
+                // Añadir este Alumno usando el método de la clase FireStore que acepta un ID y un usuario
+                firestore.altaActividad(this@Actividad)
+                println("Actividad añadido con éxito a través de FireStore con ID: $id")
             } catch (e: Exception) {
                 println("Error al añadir actividad: ${e.localizedMessage}")
             }

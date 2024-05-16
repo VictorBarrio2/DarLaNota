@@ -8,7 +8,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.darlanota.clases.FireStore
+import kotlinx.coroutines.*
 
 class PaginaActividadAlumno : AppCompatActivity() {
 
@@ -17,51 +18,34 @@ class PaginaActividadAlumno : AppCompatActivity() {
     private lateinit var iv_perfil: ImageView
     private lateinit var reciclador: RecyclerView
     private lateinit var adaptadorAlumno: AdaptadorAlumno
+    private val fireStore = FireStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actividades_alumno_layout)
 
-        val id = intent.getStringExtra("ID")
-
         iv_ranking = findViewById(R.id.iv_rankingAcAl)
         iv_actividades = findViewById(R.id.iv_actividadesAcAl)
         iv_perfil = findViewById(R.id.iv_perfilAcAl)
-        reciclador = findViewById(R.id.rv_reciclador) // Inicializa reciclador
-
+        reciclador = findViewById(R.id.rv_reciclador)
 
         iv_ranking.setOnClickListener {
-            val intent = Intent(this, PaginaRankingAlumno::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, PaginaRankingAlumno::class.java))
         }
 
         iv_perfil.setOnClickListener {
-            val intent = Intent(this, PaginaPerfilAlumno::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, PaginaPerfilAlumno::class.java))
         }
 
-        cargarActividades()
-    }
-
-    private fun cargarActividades() {
-        val db = FirebaseFirestore.getInstance()
-        val actividadesList = mutableListOf<Actividad>()
-
-        db.collection("actividades")
-            .get()
-            .addOnSuccessListener { documentos ->
-                for (documento in documentos) {
-                    val actividad = documento.toObject(Actividad::class.java)
-                    actividad.id = documento.id
-                    actividadesList.add(actividad)
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
                 adaptadorAlumno = AdaptadorAlumno(actividadesList)
-                reciclador.layoutManager = LinearLayoutManager(this)
+                reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadAlumno)
                 reciclador.adapter = adaptadorAlumno
+            } catch (e: Exception) {
+                Toast.makeText(this@PaginaActividadAlumno, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Error al cargar actividades: ${exception.localizedMessage}", Toast.LENGTH_LONG).show()
-            }
+        }
     }
-
 }

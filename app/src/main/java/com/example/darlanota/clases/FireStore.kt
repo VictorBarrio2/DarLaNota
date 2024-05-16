@@ -30,15 +30,28 @@ class FireStore {
 
     suspend fun altaActividad(actividad: Actividad) = withContext(Dispatchers.IO) {
         try {
-            // Añade un nuevo documento a la colección 'actividades' con un ID generado automáticamente.
             val documento = db.collection("actividades").add(actividad).await()
-            "Actividad añadida con éxito, ID: ${documento.id}"
+            Log.d("FireStore", "Actividad añadida con éxito, ID: ${documento.id}")
         } catch (e: Exception) {
             Log.e("FireStore", "Error al añadir actividad: ${e.localizedMessage}", e)
-            "Error al añadir actividad: ${e.localizedMessage}"
         }
     }
 
+    suspend fun cargarActividades(): List<Actividad> = withContext(Dispatchers.IO) {
+        val actividadesList = mutableListOf<Actividad>()
+        try {
+            val documentos = db.collection("actividades").get().await()
+            for (documento in documentos) {
+                val actividad = documento.toObject<Actividad>().apply {
+                    id = documento.id  // Asegúrate de que la clase Actividad tiene un campo 'id'
+                }
+                actividadesList.add(actividad)
+            }
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error al cargar actividades: ${e.localizedMessage}", e)
+        }
+        actividadesList  // Retornar la lista de actividades
+    }
 
 
     // Método para buscar un usuario por su nombre en Firestore.
