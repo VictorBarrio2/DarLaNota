@@ -20,10 +20,12 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var iv_cerrarSesion: ImageView
     private lateinit var et_contra: EditText
 
+
+    private lateinit var id : String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.perfil_alumno_layout)
-
+        id = intent.getStringExtra("ID").toString()
         iv_ranking = findViewById(R.id.iv_rankingPerfil)
         iv_actividades = findViewById(R.id.iv_actividadesPerfil)
         bto_contra = findViewById(R.id.bto_cambiarContra)
@@ -58,13 +60,16 @@ class PaginaPerfilAlumno : AppCompatActivity() {
 
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadAlumno::class.java)
+            intent.putExtra("ID", id)
             startActivity(intent)
         }
 
         iv_ranking.setOnClickListener {
             val intent = Intent(this, PaginaRankingAlumno::class.java)
+            intent.putExtra("ID", id)
             startActivity(intent)
         }
+
 
         iv_nota.setOnClickListener {
             guardarPreferenciaTema(!isDarkModeEnabled)

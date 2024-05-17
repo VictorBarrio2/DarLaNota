@@ -4,70 +4,63 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
+import com.example.darlanota.clases.FireStore
+import kotlinx.coroutines.*
 
-class PaginaActividadProfe: AppCompatActivity() {
+class PaginaActividadProfe : AppCompatActivity() {
 
-    private lateinit var rv_reciclador : RecyclerView
-
-    private lateinit var bto_altaActividad : Button
-
-    private lateinit var iv_activiades : ImageView
-    private lateinit var iv_ranking : ImageView
-    private lateinit var iv_perfil: ImageView
-
+    private lateinit var btnSubirActividad: Button
+    private lateinit var ivRanking: ImageView
+    private lateinit var ivActividades: ImageView
+    private lateinit var ivPerfil: ImageView
     private lateinit var reciclador: RecyclerView
     private lateinit var adaptadorProfe: AdaptadorProfe
-
-
-
+    private val fireStore = FireStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actividades_profesor_layout)
 
-        val id = intent.getStringExtra("ID")
+        val id = intent.getStringExtra("ID") ?: ""
 
-        iv_activiades = findViewById(R.id.iv_actividadesProfe)
-        iv_ranking = findViewById(R.id.iv_rankingProfe)
-        iv_perfil = findViewById(R.id.iv_perfilProfe)
-
+        ivRanking = findViewById(R.id.iv_rankingProfe)
+        ivActividades = findViewById(R.id.iv_actividadesProfe)
+        ivPerfil = findViewById(R.id.iv_perfilProfe)
         reciclador = findViewById(R.id.rv_reclicadorProfe)
+        btnSubirActividad = findViewById(R.id.bto_altaActividad)
 
-        bto_altaActividad = findViewById(R.id.bto_altaActividad)
-
-
-        val dataList = listOf("Actividad 1", "Actividad 2", "Actividad 3" , "Actividad 4", "Actividad 5" , "Actividad 6", "Actividad 7")
-
-        // Crea el adaptador y pasa la lista de datos
-        adaptadorProfe = AdaptadorProfe(dataList)
-
-        // Configura el LinearLayoutManager y el adaptador para el RecyclerView
-        reciclador.layoutManager = LinearLayoutManager(this)
-        reciclador.adapter = adaptadorProfe
-
-        iv_activiades.setOnClickListener {
-
+        ivRanking.setOnClickListener {
+            startActivity(Intent(this, PaginaRankingProfe::class.java).apply {
+                putExtra("ID", id)
+            })
         }
 
-        iv_perfil.setOnClickListener {
-            val intent = Intent(this, PaginaPerfilProfe::class.java)
-            startActivity(intent)
+        ivPerfil.setOnClickListener {
+            startActivity(Intent(this, PaginaPerfilProfe::class.java).apply {
+                putExtra("ID", id)
+            })
         }
 
-        iv_ranking.setOnClickListener {
-            val intent = Intent(this, PaginaRankingProfe::class.java)
-            startActivity(intent)
+        btnSubirActividad.setOnClickListener {
+            startActivity(Intent(this, PaginaAltaActividad::class.java).apply {
+                putExtra("ID", id)
+            })
         }
 
-        bto_altaActividad.setOnClickListener {
-            val intent = Intent(this, PaginaAltaActividad::class.java)
-            intent.putExtra("ID", id)
-            startActivity(intent)
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
+                adaptadorProfe = AdaptadorProfe(id, actividadesList)
+                reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadProfe)
+                reciclador.adapter = adaptadorProfe
+            } catch (e: Exception) {
+                Toast.makeText(this@PaginaActividadProfe, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
         }
-
     }
 }

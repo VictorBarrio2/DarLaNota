@@ -44,6 +44,7 @@ class FireStore {
             for (documento in documentos) {
                 val actividad = documento.toObject<Actividad>().apply {
                     id = documento.id  // Asegúrate de que la clase Actividad tiene un campo 'id'
+                    Log.e("FireStore", "La ID es: " + id)
                 }
                 actividadesList.add(actividad)
             }

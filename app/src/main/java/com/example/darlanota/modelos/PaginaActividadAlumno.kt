@@ -1,6 +1,7 @@
 package com.example.darlanota.modelos
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -29,18 +30,24 @@ class PaginaActividadAlumno : AppCompatActivity() {
         iv_perfil = findViewById(R.id.iv_perfilAcAl)
         reciclador = findViewById(R.id.rv_reciclador)
 
+        val id = intent.getStringExtra("ID")
+
         iv_ranking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingAlumno::class.java))
+            val intent = Intent(this, PaginaRankingAlumno::class.java)
+            intent.putExtra("ID", id)
+            startActivity(intent)
         }
 
         iv_perfil.setOnClickListener {
-            startActivity(Intent(this, PaginaPerfilAlumno::class.java))
+            val intent = Intent(this, PaginaPerfilAlumno::class.java)
+            intent.putExtra("ID", id)
+            startActivity(intent)
         }
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
-                adaptadorAlumno = AdaptadorAlumno(actividadesList)
+                adaptadorAlumno = AdaptadorAlumno(id.toString(), actividadesList)
                 reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadAlumno)
                 reciclador.adapter = adaptadorAlumno
             } catch (e: Exception) {

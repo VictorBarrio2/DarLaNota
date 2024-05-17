@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,8 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DarLaNota"
+        android:requestLegacyExternalStorage="false"
         tools:targetApi="31">
-
 
         <activity
             android:name=".modelos.PaginaLogin"
@@ -23,59 +24,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".modelos.PaginaActividadAlumno"
-            android:screenOrientation="portrait">
-        </activity>
-        <activity
-            android:name=".modelos.PaginaRankingAlumno"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaPerfilAlumno"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaPerfilProfe"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaActividadProfe"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaInstrumentos"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaRegistro"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaRankingProfe"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaVerActividad"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaCorregirActividad"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
-            android:name=".modelos.PaginaAltaActividad"
-            android:screenOrientation="portrait">
-        </activity>
+        <activity android:name=".modelos.PaginaActividadAlumno" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaRankingAlumno" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaPerfilAlumno" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaPerfilProfe" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaActividadProfe" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaInstrumentos" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaRegistro" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaRankingProfe" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaVerActividad" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaCorregirActividad" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaAltaActividad" android:screenOrientation="portrait" />
     </application>
-
 </manifest>

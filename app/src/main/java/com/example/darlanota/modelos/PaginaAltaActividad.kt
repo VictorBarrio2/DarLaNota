@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +26,10 @@ class PaginaAltaActividad : AppCompatActivity() {
     private lateinit var et_titulo: EditText
     private lateinit var et_des: EditText
     private lateinit var fechaSeleccionada: TextView
+    private lateinit var iv_perfil: ImageView
+    private lateinit var iv_ranking: ImageView
+    private lateinit var iv_actividad: ImageView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,21 +41,30 @@ class PaginaAltaActividad : AppCompatActivity() {
         et_titulo = findViewById(R.id.et_tituloAlta)
         et_des = findViewById(R.id.et_descripcionAlta)
         fechaSeleccionada = findViewById(R.id.tv_fecha)
+        iv_actividad = findViewById(R.id.iv_actividadesAltaAc)
+        iv_ranking = findViewById(R.id.iv_rankingAltaAc)
+        iv_perfil = findViewById(R.id.iv_perfilAltaAc)
 
-        val id_profe = intent.getStringExtra("ID") ?: ""  // No default to "0", should handle null properly.
 
         bto_subirActividad.setOnClickListener {
+
             val titulo = et_titulo.text.toString().trim()
             val descripcion = et_des.text.toString().trim()
             val fechaFin = fechaSeleccionada.text.toString()
+            val id_profe = intent.getStringExtra("ID") ?: ""
 
             if (titulo.isEmpty() || descripcion.isEmpty() || fechaFin == "--/--/----") {
                 Toast.makeText(this, "Faltan campos por seleccionar", Toast.LENGTH_SHORT).show()
             } else {
-                val nuevaActividad = Actividad(descripcion, fechaFin, titulo, id_profe)
+                val nuevaActividad = Actividad(
+                    descripcion = descripcion,
+                    fechafin = fechaFin,
+                    titulo = titulo,
+                    id_profesor = id_profe
+                )
                 CoroutineScope(Dispatchers.Main).launch {
                     try {
-                        altaActividad(nuevaActividad)
+                        nuevaActividad.subirActividadFirestore()
                         Toast.makeText(this@PaginaAltaActividad, "Actividad creada", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@PaginaAltaActividad, PaginaActividadProfe::class.java))
                     } catch (e: Exception) {
@@ -62,6 +76,21 @@ class PaginaAltaActividad : AppCompatActivity() {
 
         bto_fecha.setOnClickListener {
             mostrarDatePicker()
+        }
+
+        iv_perfil.setOnClickListener {
+            val intent = Intent(this, PaginaPerfilProfe::class.java)
+            startActivity(intent)
+        }
+
+        iv_ranking.setOnClickListener {
+            val intent = Intent(this, PaginaRankingProfe::class.java)
+            startActivity(intent)
+        }
+
+        iv_actividad.setOnClickListener {
+            val intent = Intent(this, PaginaRankingProfe::class.java)
+            startActivity(intent)
         }
     }
 

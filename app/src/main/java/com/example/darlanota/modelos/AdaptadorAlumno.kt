@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
 
-class AdaptadorAlumno(private val dataList: List<Actividad>) :
+class AdaptadorAlumno(private val id: String, private val dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DatosHolder {
@@ -24,9 +24,13 @@ class AdaptadorAlumno(private val dataList: List<Actividad>) :
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, PaginaVerActividad::class.java)
             intent.putExtra("ACTIVIDAD_ID", actividad.id)
+            intent.putExtra("TITULO", actividad.titulo)
+            intent.putExtra("DESCRIPCION", actividad.descripcion)
+            intent.putExtra("ID", id)
             holder.itemView.context.startActivity(intent)
         }
     }
+
 
     override fun getItemCount(): Int = dataList.size
 

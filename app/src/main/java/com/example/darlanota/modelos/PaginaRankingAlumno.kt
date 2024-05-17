@@ -26,11 +26,11 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_perfil: ImageView
 
-
+    private lateinit var id : String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ranking_alumno_layout)
-
+        id = intent.getStringExtra("ID").toString()
         et_1 = findViewById(R.id.tv_primeraPosAl)
         et_2 = findViewById(R.id.tv_segundaPosAl)
         et_3 = findViewById(R.id.tv_terceraPosAl)
@@ -51,11 +51,14 @@ class PaginaRankingAlumno : AppCompatActivity() {
 
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadAlumno::class.java)
+            intent.putExtra("ID", id)
             startActivity(intent)
         }
 
+
         iv_perfil.setOnClickListener {
             val intent = Intent(this, PaginaPerfilAlumno::class.java)
+            intent.putExtra("ID", id)
             startActivity(intent)
         }
 
