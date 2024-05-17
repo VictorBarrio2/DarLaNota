@@ -132,7 +132,7 @@ class PaginaVerActividad : AppCompatActivity() {
         val videoPath = "videos/${uriVideo.lastPathSegment}"
         val storageRef = FirebaseStorage.getInstance().reference.child(videoPath)
 
-        storageRef.putFile(uriVideo).addOnSuccessListener {º
+        storageRef.putFile(uriVideo).addOnSuccessListener {
             val nuevaEntrega = Entrega(idAlumno = id, video = videoPath, calificacion = 0)
             nuevaEntrega.subirEntregaFirestore(id_actividad)
             entregado = true
