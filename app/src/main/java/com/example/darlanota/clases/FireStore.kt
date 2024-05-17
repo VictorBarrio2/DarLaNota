@@ -85,6 +85,24 @@ class FireStore {
             false
         }
     }
+
+    suspend fun actualizarVideoEntrega(idActividad: String, idAlumno: String, nuevoVideo: String) {
+        try {
+            val actividadRef = db.collection("actividades").document(idActividad)
+            db.runTransaction { transaction ->
+                val actividadSnapshot = transaction.get(actividadRef)
+                val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
+                val entregaIndex = entregas.indexOfFirst { it["idAlumno"] == idAlumno }
+                if (entregaIndex != -1) {
+                    entregas[entregaIndex]["video"] = nuevoVideo
+                    transaction.update(actividadRef, "entregas", entregas)
+                }
+            }.await()
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al actualizar el video: ${e.localizedMessage}", e)
+            throw e // Puedes manejar el error como creas conveniente
+        }
+    }
     // Método para buscar un usuario por su nombre en Firestore.
     suspend fun buscarAlumnoPorId(id: String): Alumno? = withContext(Dispatchers.IO) {
         val db = FirebaseFirestore.getInstance()

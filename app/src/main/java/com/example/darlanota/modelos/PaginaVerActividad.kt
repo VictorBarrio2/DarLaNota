@@ -1,7 +1,6 @@
 package com.example.darlanota.modelos
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -9,10 +8,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.example.darlanota.R
 import com.example.darlanota.clases.Entrega
 import com.example.darlanota.clases.FireStore
@@ -20,11 +16,11 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
-// Define la clase PaginaVerActividad que hereda de AppCompatActivity
 class PaginaVerActividad : AppCompatActivity() {
 
-    // Variables para las vistas en la interfaz de usuario
     private lateinit var botonSubirVideo: Button
     private lateinit var textoDescripcion: TextView
     private lateinit var textoTitulo: TextView
@@ -35,11 +31,9 @@ class PaginaVerActividad : AppCompatActivity() {
     private lateinit var iconoRanking: ImageView
     private lateinit var id: String
     private lateinit var id_actividad: String
-    private lateinit var video: String
     private var entregado: Boolean = false
 
     companion object {
-        // Códigos de solicitud para la actividad de selección de video y permisos
         private const val CODIGO_SELECCION_VIDEO = 1000
     }
 
@@ -52,7 +46,6 @@ class PaginaVerActividad : AppCompatActivity() {
         verificarEntrega()
     }
 
-    // Inicializa las vistas y configura los listeners de eventos
     private fun inicializarVistas() {
         textoTitulo = findViewById(R.id.tv_tituloActVer)
         textoDescripcion = findViewById(R.id.tv_descripcionVer)
@@ -69,29 +62,22 @@ class PaginaVerActividad : AppCompatActivity() {
         textoDescripcion.text = intent.getStringExtra("DESCRIPCION")
 
         botonSubirVideo.setOnClickListener {
-            if(entregado == false){
-                seleccionarVideo()
-            }else{
-                Toast.makeText(this, "La tarea ya fue entregada anteriormente", Toast.LENGTH_SHORT).show()
-            }
+            seleccionarVideo()
         }
     }
 
-    // Configura la navegación entre actividades
     private fun configurarNavegacion() {
         iconoActividades.setOnClickListener { navegarA(PaginaActividadAlumno::class.java) }
         iconoRanking.setOnClickListener { navegarA(PaginaRankingAlumno::class.java) }
         iconoPerfil.setOnClickListener { navegarA(PaginaPerfilAlumno::class.java) }
     }
 
-    // Navega a la actividad especificada, pasando el ID actual
     private fun navegarA(destino: Class<*>) {
         val intent = Intent(this, destino)
         intent.putExtra("ID", id)
         startActivity(intent)
     }
 
-    // Inicia un Intent para seleccionar un video desde la galería usando el Storage Access Framework
     private fun seleccionarVideo() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -102,54 +88,58 @@ class PaginaVerActividad : AppCompatActivity() {
 
     fun verificarEntrega() {
         val firestoreService = FireStore()
-        val idActividad = id_actividad
-        val idAlumno = id
-
         CoroutineScope(Dispatchers.Main).launch {
-            val yaEntregado = firestoreService.existeEntrega(idActividad, idAlumno)
-            if (yaEntregado) {
-                textoEntregado.text = "Entregado: Si"
-                entregado = true
-            } else {
-                textoEntregado.text = "Entregado: No"
-            }
+            entregado = firestoreService.existeEntrega(id_actividad, id)
+            textoEntregado.text = if (entregado) "Entregado: Sí" else "Entregado: No"
         }
     }
 
-    // Maneja el resultado de la actividad de selección de video
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == CODIGO_SELECCION_VIDEO && resultCode == RESULT_OK && data != null) {
-            val videoUri: Uri? = data.data
-
-            videoUri?.let {
-                // Sube el video seleccionado a Firebase Storage
-                subirVideoAFirebase(it)
+            data.data?.let { uri ->
+                if (entregado) {
+                    actualizarVideoEnFirestore(uri)
+                } else {
+                    subirVideoAFirebase(uri)
+                }
             }
         }
     }
 
-    // Sube el video a Firebase Storage
-    private fun subirVideoAFirebase(uriVideo: Uri) {
+    private fun actualizarVideoEnFirestore(uriVideo: Uri) {
+        val nuevoVideoPath = "videos/${uriVideo.lastPathSegment}"
+        val storageRef = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
 
-
-            video = "videos/${uriVideo.lastPathSegment}"
-            val entrega = Entrega(
-                idAlumno = id,
-                video = video,
-                calificacion = 0
-            )
-
-            entrega.subirEntregaFirestore(id_actividad)
-            textoEntregado.text = "Entregago: Si"
-
-            val storageRef = FirebaseStorage.getInstance().reference.child(video)
-            val uploadTask = storageRef.putFile(uriVideo)
-            uploadTask.addOnSuccessListener {
-                Toast.makeText(this, "Video subido exitosamente", Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener {
-                Toast.makeText(this, "Error al subir video", Toast.LENGTH_SHORT).show()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                storageRef.putFile(uriVideo).await()
+                val firestoreService = FireStore()
+                firestoreService.actualizarVideoEntrega(id_actividad, id, nuevoVideoPath)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(applicationContext, "Entrega actualizada", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("UpdateVideo", "Error actualizando video: ${e.localizedMessage}")
+                    Toast.makeText(applicationContext, "Error al actualizar video", Toast.LENGTH_SHORT).show()
+                }
             }
+        }
+    }
 
+    private fun subirVideoAFirebase(uriVideo: Uri) {
+        val videoPath = "videos/${uriVideo.lastPathSegment}"
+        val storageRef = FirebaseStorage.getInstance().reference.child(videoPath)
+
+        storageRef.putFile(uriVideo).addOnSuccessListener {
+            val nuevaEntrega = Entrega(idAlumno = id, video = videoPath, calificacion = 0)
+            nuevaEntrega.subirEntregaFirestore(id_actividad)
+            entregado = true
+            textoEntregado.text = "Entregado: Sí"
+            Toast.makeText(this, "Video subido exitosamente", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al subir video", Toast.LENGTH_SHORT).show()
+        }
     }
 }
