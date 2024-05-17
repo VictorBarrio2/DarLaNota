@@ -53,8 +53,8 @@
 
     <Button
         android:id="@+id/bto_altaActividad"
-        android:layout_width="288dp"
-        android:layout_height="58dp"
+        android:layout_width="295dp"
+        android:layout_height="69dp"
         android:backgroundTint="#C40B0F"
         android:text="Alta Actividad"
         android:textColor="#FFFFFF"

@@ -32,18 +32,18 @@
 
     <Button
         android:id="@+id/bto_subirVideo"
-        android:layout_width="288dp"
-        android:layout_height="58dp"
+        android:layout_width="291dp"
+        android:layout_height="72dp"
         android:backgroundTint="#C50B0F"
         android:text="Subir Video"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintHorizontal_bias="0.483"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.65" />
+        app:layout_constraintVertical_bias="0.673" />
 
     <TextView
         android:id="@+id/tv_calificacion"

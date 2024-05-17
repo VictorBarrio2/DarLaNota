@@ -138,9 +138,6 @@ class PaginaLogin : AppCompatActivity() {
     }
 
 
-
-
-
     private fun mostrarAlerta(titulo: String, mensaje: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(titulo)

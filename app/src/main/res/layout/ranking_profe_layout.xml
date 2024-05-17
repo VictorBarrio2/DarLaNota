@@ -167,8 +167,8 @@
 
     <Button
         android:id="@+id/bto_cambiarRanking"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="251dp"
+        android:layout_height="67dp"
         android:backgroundTint="#C30B0F"
         android:text="Cambiar Ranking"
         android:textColor="#FFFFFF"
@@ -177,5 +177,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.803" />
+        app:layout_constraintVertical_bias="0.822" />
 </androidx.constraintlayout.widget.ConstraintLayout>

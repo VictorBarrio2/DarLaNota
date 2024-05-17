@@ -14,7 +14,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.darlanota.R
+import com.example.darlanota.clases.Entrega
+import com.example.darlanota.clases.FireStore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 // Define la clase PaginaVerActividad que hereda de AppCompatActivity
 class PaginaVerActividad : AppCompatActivity() {
@@ -29,7 +34,9 @@ class PaginaVerActividad : AppCompatActivity() {
     private lateinit var iconoActividades: ImageView
     private lateinit var iconoRanking: ImageView
     private lateinit var id: String
+    private lateinit var id_actividad: String
     private lateinit var video: String
+    private var entregado: Boolean = false
 
     companion object {
         // Códigos de solicitud para la actividad de selección de video y permisos
@@ -42,6 +49,7 @@ class PaginaVerActividad : AppCompatActivity() {
 
         inicializarVistas()
         configurarNavegacion()
+        verificarEntrega()
     }
 
     // Inicializa las vistas y configura los listeners de eventos
@@ -56,11 +64,16 @@ class PaginaVerActividad : AppCompatActivity() {
         botonSubirVideo = findViewById(R.id.bto_subirVideo)
 
         id = intent.getStringExtra("ID").orEmpty()
+        id_actividad = intent.getStringExtra("ACTIVIDAD_ID").orEmpty()
         textoTitulo.text = intent.getStringExtra("TITULO")
         textoDescripcion.text = intent.getStringExtra("DESCRIPCION")
 
         botonSubirVideo.setOnClickListener {
-            seleccionarVideo()
+            if(entregado == false){
+                seleccionarVideo()
+            }else{
+                Toast.makeText(this, "La tarea ya fue entregada anteriormente", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -87,6 +100,22 @@ class PaginaVerActividad : AppCompatActivity() {
         startActivityForResult(intent, CODIGO_SELECCION_VIDEO)
     }
 
+    fun verificarEntrega() {
+        val firestoreService = FireStore()
+        val idActividad = id_actividad
+        val idAlumno = id
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val yaEntregado = firestoreService.existeEntrega(idActividad, idAlumno)
+            if (yaEntregado) {
+                textoEntregado.text = "Entregado: Si"
+                entregado = true
+            } else {
+                textoEntregado.text = "Entregado: No"
+            }
+        }
+    }
+
     // Maneja el resultado de la actividad de selección de video
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -102,13 +131,25 @@ class PaginaVerActividad : AppCompatActivity() {
 
     // Sube el video a Firebase Storage
     private fun subirVideoAFirebase(uriVideo: Uri) {
-        video = "videos/${uriVideo.lastPathSegment}"
-        val storageRef = FirebaseStorage.getInstance().reference.child(video)
-        val uploadTask = storageRef.putFile(uriVideo)
-        uploadTask.addOnSuccessListener {
-            Toast.makeText(this, "Video subido exitosamente", Toast.LENGTH_SHORT).show()
-        }.addOnFailureListener {
-            Toast.makeText(this, "Error al subir video", Toast.LENGTH_SHORT).show()
-        }
+
+
+            video = "videos/${uriVideo.lastPathSegment}"
+            val entrega = Entrega(
+                idAlumno = id,
+                video = video,
+                calificacion = 0
+            )
+
+            entrega.subirEntregaFirestore(id_actividad)
+            textoEntregado.text = "Entregago: Si"
+
+            val storageRef = FirebaseStorage.getInstance().reference.child(video)
+            val uploadTask = storageRef.putFile(uriVideo)
+            uploadTask.addOnSuccessListener {
+                Toast.makeText(this, "Video subido exitosamente", Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener {
+                Toast.makeText(this, "Error al subir video", Toast.LENGTH_SHORT).show()
+            }
+
     }
 }

@@ -54,7 +54,37 @@ class FireStore {
         actividadesList  // Retornar la lista de actividades
     }
 
+    suspend fun altaEntrega(idActividad: String, nuevaEntrega: Entrega): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val actividadRef = db.collection("actividades").document(idActividad)
+            db.runTransaction { transaction ->
+                val actividadSnapshot = transaction.get(actividadRef)
+                val entregas = actividadSnapshot.get("entregas") as? ArrayList<Entrega> ?: ArrayList()
+                entregas.add(nuevaEntrega)
+                transaction.update(actividadRef, "entregas", entregas)
+            }.await()
+            Result.success("Entrega agregada exitosamente a la actividad")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
+
+    suspend fun existeEntrega(idActividad: String, idAlumno: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val actividadRef = db.collection("actividades").document(idActividad)
+            val resultado = actividadRef.get().await()
+            if (resultado.exists()) {
+                val entregas = resultado.get("entregas") as? ArrayList<Map<String, Any>> ?: ArrayList()
+                // Verifica si alguna de las entregas en la lista tiene el idAlumno
+                entregas.any { entrega -> entrega["idAlumno"] == idAlumno }
+            } else {
+                false // No existe el documento de actividad, por lo tanto no puede haber entregas
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
     // Método para buscar un usuario por su nombre en Firestore.
     suspend fun buscarAlumnoPorId(id: String): Alumno? = withContext(Dispatchers.IO) {
         val db = FirebaseFirestore.getInstance()

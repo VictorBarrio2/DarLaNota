@@ -63,8 +63,8 @@
 
     <Button
         android:id="@+id/bto_cambiarInstrumento"
-        android:layout_width="289dp"
-        android:layout_height="68dp"
+        android:layout_width="323dp"
+        android:layout_height="74dp"
         android:backgroundTint="#C50B0F"
         android:text="Cambiar Instrumento"
         android:textColor="#FFFFFF"
@@ -77,8 +77,8 @@
 
     <Button
         android:id="@+id/bto_cambiarContra"
-        android:layout_width="288dp"
-        android:layout_height="65dp"
+        android:layout_width="322dp"
+        android:layout_height="71dp"
         android:backgroundTint="#C50B0F"
         android:text="Cambiar Constraseña"
         android:textColor="#FFFFFF"

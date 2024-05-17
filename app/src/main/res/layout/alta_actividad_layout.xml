@@ -111,18 +111,18 @@
 
     <Button
         android:id="@+id/bto_fecha"
-        android:layout_width="220dp"
-        android:layout_height="80dp"
+        android:layout_width="218dp"
+        android:layout_height="83dp"
         android:backgroundTint="#C10B0F"
         android:text="Selecciona fecha"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.083"
+        app:layout_constraintHorizontal_bias="0.036"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.706" />
+        app:layout_constraintVertical_bias="0.709" />
 
     <TextView
         android:id="@+id/tv_fecha"
@@ -132,8 +132,8 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.952"
+        app:layout_constraintHorizontal_bias="0.982"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.692" />
+        app:layout_constraintVertical_bias="0.693" />
 </androidx.constraintlayout.widget.ConstraintLayout>

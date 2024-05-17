@@ -73,8 +73,8 @@
 
     <Button
         android:id="@+id/bto_crearCuenta"
-        android:layout_width="306dp"
-        android:layout_height="66dp"
+        android:layout_width="305dp"
+        android:layout_height="71dp"
         android:backgroundTint="#C50B0F"
         android:text="Crear Cuenta"
         android:textColor="#FFFFFF"
