@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 
 class FireStore {
     // Instancia de Firestore para acceder a la base de datos de Firebase.
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     // Método para añadir un usuario a la base de datos.
     // Usuario puede ser un Alumno o un Profesor.
@@ -87,49 +87,43 @@ class FireStore {
     }
 
     suspend fun actualizarVideoEntrega(idActividad: String, idAlumno: String, nuevoVideo: String) {
+        val actividadRef = db.collection("actividades").document(idActividad)
+        db.runTransaction { transaction ->
+            val actividadSnapshot = transaction.get(actividadRef)
+            val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
+            val entregaIndex = entregas.indexOfFirst { it["idAlumno"] == idAlumno }
+            if (entregaIndex != -1) {
+                entregas[entregaIndex]["video"] = nuevoVideo
+                transaction.update(actividadRef, "entregas", entregas)
+            }
+        }.await()
+    }
+
+    suspend fun obtenerCalificacionEntrega(idActividad: String, idAlumno: String): Int? = withContext(Dispatchers.IO) {
         try {
             val actividadRef = db.collection("actividades").document(idActividad)
-            db.runTransaction { transaction ->
-                val actividadSnapshot = transaction.get(actividadRef)
-                val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
-                val entregaIndex = entregas.indexOfFirst { it["idAlumno"] == idAlumno }
-                if (entregaIndex != -1) {
-                    entregas[entregaIndex]["video"] = nuevoVideo
-                    transaction.update(actividadRef, "entregas", entregas)
+            val resultado = actividadRef.get().await()
+            if (resultado.exists()) {
+                val entregas = resultado.get("entregas") as? ArrayList<Map<String, Any>> ?: ArrayList()
+                val entrega = entregas.find { it["idAlumno"] == idAlumno }
+                if (entrega != null) {
+                    Log.d("FireStore", "Entrega encontrada: $entrega")
+                    val calificacion = entrega["calificacion"]
+                    Log.d("FireStore", "Calificación obtenida: $calificacion, tipo: ${calificacion?.javaClass?.name}")
+                    (calificacion as? Long)?.toInt() ?: calificacion as? Int
+                } else {
+                    Log.d("FireStore", "No se encontró entrega para el alumno con id: $idAlumno")
+                    null
                 }
-            }.await()
-        } catch (e: Exception) {
-            Log.e("Firestore", "Error al actualizar el video: ${e.localizedMessage}", e)
-            throw e // Puedes manejar el error como creas conveniente
-        }
-    }
-    // Método para buscar un usuario por su nombre en Firestore.
-    suspend fun buscarAlumnoPorId(id: String): Alumno? = withContext(Dispatchers.IO) {
-        val db = FirebaseFirestore.getInstance()
-        try {
-            val documento = db.collection("usuarios").document(id).get().await()
-            if (documento.exists() && documento.getString("tipo") == "alumno") {
-                documento.toObject<Alumno>()
             } else {
+                Log.d("FireStore", "El documento de actividad con id $idActividad no existe")
                 null
             }
         } catch (e: Exception) {
+            Log.e("FireStore", "Error al obtener la calificación de la entrega: ${e.localizedMessage}", e)
             null
         }
     }
 
-    suspend fun buscarProfesorPorId(id: String): Profesor? = withContext(Dispatchers.IO) {
-        val db = FirebaseFirestore.getInstance()
-        try {
-            val documento = db.collection("usuarios").document(id).get().await()
-            if (documento.exists() && documento.getString("tipo") == "profesor") {
-                documento.toObject<Profesor>()
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
 
 }

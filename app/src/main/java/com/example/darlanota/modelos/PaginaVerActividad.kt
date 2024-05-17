@@ -43,7 +43,7 @@ class PaginaVerActividad : AppCompatActivity() {
 
         inicializarVistas()
         configurarNavegacion()
-        verificarEntrega()
+        verificarEntregaYCalificacion()
     }
 
     private fun inicializarVistas() {
@@ -86,11 +86,30 @@ class PaginaVerActividad : AppCompatActivity() {
         startActivityForResult(intent, CODIGO_SELECCION_VIDEO)
     }
 
-    fun verificarEntrega() {
+    private fun verificarEntregaYCalificacion() {
         val firestoreService = FireStore()
         CoroutineScope(Dispatchers.Main).launch {
-            entregado = firestoreService.existeEntrega(id_actividad, id)
-            textoEntregado.text = if (entregado) "Entregado: Sí" else "Entregado: No"
+            try {
+                val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
+                val actividadSnapshot = actividadRef.get().await()
+                val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
+                val entregaMap = entregas.find { it["idAlumno"] == id }
+
+                if (entregaMap != null) {
+                    val entrega = Entrega(
+                        idAlumno = entregaMap["idAlumno"] as String,
+                        video = entregaMap["video"] as String,
+                        calificacion = (entregaMap["calificacion"] as Long).toInt()
+                    )
+                    entregado = true
+                    textoEntregado.text = "Entregado: Sí"
+                    textoCalificacion.text = "Calificación: ${entrega.calificacion}"
+                } else {
+                    textoEntregado.text = "Entregado: No"
+                }
+            } catch (e: Exception) {
+                Log.e("FireStore", "Error al verificar la entrega: ${e.localizedMessage}", e)
+            }
         }
     }
 
@@ -109,13 +128,26 @@ class PaginaVerActividad : AppCompatActivity() {
 
     private fun actualizarVideoEnFirestore(uriVideo: Uri) {
         val nuevoVideoPath = "videos/${uriVideo.lastPathSegment}"
-        val storageRef = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
+        val firestoreService = FireStore()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                storageRef.putFile(uriVideo).await()
-                val firestoreService = FireStore()
+                val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
+                val actividadSnapshot = actividadRef.get().await()
+                val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
+                val entrega = entregas.find { it["idAlumno"] == id }
+                val videoAntiguoPath = entrega?.get("video") as? String
+
+                if (!videoAntiguoPath.isNullOrEmpty()) {
+                    val storageRef = FirebaseStorage.getInstance().getReference(videoAntiguoPath)
+                    storageRef.delete().await()
+                }
+
+                val storageRefNuevo = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
+                storageRefNuevo.putFile(uriVideo).await()
+
                 firestoreService.actualizarVideoEntrega(id_actividad, id, nuevoVideoPath)
+
                 withContext(Dispatchers.Main) {
                     Toast.makeText(applicationContext, "Entrega actualizada", Toast.LENGTH_SHORT).show()
                 }
