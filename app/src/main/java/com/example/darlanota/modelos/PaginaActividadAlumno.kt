@@ -1,4 +1,5 @@
 package com.example.darlanota.modelos
+
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -11,6 +12,7 @@ import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
 import com.example.darlanota.clases.FireStore
 import kotlinx.coroutines.*
+import java.util.Date
 
 class PaginaActividadAlumno : AppCompatActivity() {
 
@@ -47,7 +49,21 @@ class PaginaActividadAlumno : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
-                adaptadorAlumno = AdaptadorAlumno(id.toString(), actividadesList)
+
+                // Filtrar actividades pasadas y eliminarlas
+                val actividadesValidas = actividadesList.filter { actividad ->
+                    val fechaFin = actividad.fechafin?.toDate()
+                    if (fechaFin != null && fechaFin.before(Date())) {
+                        withContext(Dispatchers.IO) {
+                            fireStore.eliminarActividad(actividad.id)
+                        }
+                        false
+                    } else {
+                        true
+                    }
+                }
+
+                adaptadorAlumno = AdaptadorAlumno(id.toString(), actividadesValidas)
                 reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadAlumno)
                 reciclador.adapter = adaptadorAlumno
             } catch (e: Exception) {

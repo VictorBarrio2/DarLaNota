@@ -228,23 +228,12 @@ class FireStore {
         }
     }
 
-    suspend fun eliminarActividadesAntiguas() = withContext(Dispatchers.IO) {
+    suspend fun eliminarActividad(idActividad: String) = withContext(Dispatchers.IO) {
         try {
-            val actividadesRef = db.collection("actividades")
-            val snapshot = actividadesRef.get().await()
-            val ahora = Calendar.getInstance().time
-
-            for (documento in snapshot.documents) {
-                val actividad = documento.toObject(Actividad::class.java)
-                if (actividad != null && actividad.fechafin != null) {
-                    if (actividad.fechafin!!.toDate().before(ahora)) {
-                        actividadesRef.document(documento.id).delete().await()
-                        Log.d("Firestore", "Actividad con ID ${documento.id} eliminada")
-                    }
-                }
-            }
+            db.collection("actividades").document(idActividad).delete().await()
+            Log.d("Firestore", "Actividad eliminada correctamente")
         } catch (e: Exception) {
-            Log.e("Firestore", "Error al eliminar actividades antiguas: ${e.localizedMessage}", e)
+            Log.e("Firestore", "Error al eliminar la actividad: ${e.localizedMessage}", e)
         }
     }
 }
