@@ -54,6 +54,7 @@ class PaginaInstrumentos : AppCompatActivity() {
                 val intent = Intent(this, PaginaActividadAlumno::class.java)
                 intent.putExtra("ID", id)
                 startActivity(intent)
+                finish()
             }
         }
 

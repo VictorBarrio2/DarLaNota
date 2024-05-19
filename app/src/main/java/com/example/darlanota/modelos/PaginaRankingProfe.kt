@@ -2,11 +2,12 @@ package com.example.darlanota.modelos
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
+import com.example.darlanota.clases.FireStore
+import kotlinx.coroutines.*
 
 class PaginaRankingProfe : AppCompatActivity() {
 
@@ -20,11 +21,12 @@ class PaginaRankingProfe : AppCompatActivity() {
     private lateinit var et_8: TextView
     private lateinit var et_9: TextView
     private lateinit var et_10: TextView
-    private lateinit var bto_cambiarRanking: Button
 
     private lateinit var iv_ranking: ImageView
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_perfil: ImageView
+
+    private val fireStore = FireStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,8 +43,6 @@ class PaginaRankingProfe : AppCompatActivity() {
         et_9 = findViewById(R.id.tv_novenaPosPro)
         et_10 = findViewById(R.id.tv_decimaPosPro)
 
-        bto_cambiarRanking = findViewById(R.id.bto_cambiarRanking)
-
         iv_ranking = findViewById(R.id.iv_rankingRaPro)
         iv_actividades = findViewById(R.id.iv_actividadesRaPro)
         iv_perfil = findViewById(R.id.iv_perfilRaPro)
@@ -57,9 +57,25 @@ class PaginaRankingProfe : AppCompatActivity() {
             startActivity(intent)
         }
 
-        bto_cambiarRanking.setOnClickListener {
-            val fragmentoDialogo = FragmentoNota()
-            fragmentoDialogo.show(supportFragmentManager, "fragmento_dialogo")
+        cargarRanking()
+    }
+
+    private fun cargarRanking() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val ranking = withContext(Dispatchers.IO) { fireStore.obtenerRankingUsuarios() }
+            actualizarRanking(ranking)
+        }
+    }
+
+    private fun actualizarRanking(ranking: List<Pair<String, Long>>) {
+        val rankingViews = listOf(et_1, et_2, et_3, et_4, et_5, et_6, et_7, et_8, et_9, et_10)
+
+        for (i in rankingViews.indices) {
+            if (i < ranking.size) {
+                rankingViews[i].text = ranking[i].first
+            } else {
+                rankingViews[i].text = ""
+            }
         }
     }
 }

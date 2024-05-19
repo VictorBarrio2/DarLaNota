@@ -242,4 +242,44 @@ class FireStore {
             Log.e("Firestore", "Error al eliminar la actividad: ${e.localizedMessage}", e)
         }
     }
+
+    suspend fun obtenerRankingUsuarios(): List<Pair<String, Long>> = withContext(Dispatchers.IO) {
+        try {
+            val usuariosSnapshot = db.collection("usuarios")
+                .orderBy("puntuacion", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get().await()
+            val rankingUsuarios = mutableListOf<Pair<String, Long>>()
+
+            for (documento in usuariosSnapshot.documents) {
+                val nombre = documento.getString("nombre") ?: "Sin nombre"
+                val puntuacion = documento.getLong("puntuacion") ?: 0L
+                rankingUsuarios.add(Pair(nombre, puntuacion))
+            }
+
+            rankingUsuarios
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener el ranking de usuarios: ${e.localizedMessage}", e)
+            emptyList()
+        }
+    }
+
+    suspend fun obtenerPuntuacionUsuario(idAlumno: String): Long? = withContext(Dispatchers.IO) {
+        try {
+            val alumnoDoc = db.collection("usuarios").document(idAlumno).get().await()
+            alumnoDoc.getLong("puntuacion")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener la puntuación del alumno: ${e.localizedMessage}", e)
+            null
+        }
+    }
+
+    suspend fun obtenerNombreUsuario(idAlumno: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val alumnoDoc = db.collection("usuarios").document(idAlumno).get().await()
+            alumnoDoc.getString("nombre")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
+            null
+        }
+    }
 }

@@ -107,6 +107,7 @@ class PaginaLogin : AppCompatActivity() {
                                             val intent = Intent(this@PaginaLogin, PaginaActividadAlumno::class.java)
                                             intent.putExtra("ID", id)
                                             startActivity(intent)
+                                            finish()
                                         } else {
                                             mostrarAlerta("Error de inicio de sesión", "Usuario no válido.")
                                             val firestore = FireStore()

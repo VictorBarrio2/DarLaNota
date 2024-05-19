@@ -6,6 +6,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
+import com.example.darlanota.clases.FireStore
+import kotlinx.coroutines.*
 
 class PaginaRankingAlumno : AppCompatActivity() {
 
@@ -26,10 +28,13 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_perfil: ImageView
 
-    private lateinit var id : String
+    private lateinit var id: String
+    private val fireStore = FireStore()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ranking_alumno_layout)
+
         id = intent.getStringExtra("ID").toString()
         et_1 = findViewById(R.id.tv_primeraPosAl)
         et_2 = findViewById(R.id.tv_segundaPosAl)
@@ -48,13 +53,11 @@ class PaginaRankingAlumno : AppCompatActivity() {
         iv_actividades = findViewById(R.id.iv_actividadesRaAl)
         iv_perfil = findViewById(R.id.iv_perfilRaAl)
 
-
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadAlumno::class.java)
             intent.putExtra("ID", id)
             startActivity(intent)
         }
-
 
         iv_perfil.setOnClickListener {
             val intent = Intent(this, PaginaPerfilAlumno::class.java)
@@ -62,7 +65,40 @@ class PaginaRankingAlumno : AppCompatActivity() {
             startActivity(intent)
         }
 
+        cargarRanking()
+    }
 
+    private fun cargarRanking() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val ranking = withContext(Dispatchers.IO) { fireStore.obtenerRankingUsuarios() }
+            val nombreUsuario = withContext(Dispatchers.IO) { fireStore.obtenerNombreUsuario(id) }
+            val posicion = ranking.indexOfFirst { it.first == nombreUsuario }
+            val puntuacion = ranking.find { it.first == nombreUsuario }?.second
 
+            actualizarRanking(ranking)
+            actualizarPosicionYPuntuacion(posicion, puntuacion)
+        }
+    }
+
+    private fun actualizarRanking(ranking: List<Pair<String, Long>>) {
+        val rankingViews = listOf(et_1, et_2, et_3, et_4, et_5, et_6, et_7, et_8, et_9, et_10)
+
+        for (i in rankingViews.indices) {
+            if (i < ranking.size) {
+                rankingViews[i].text = ranking[i].first
+            } else {
+                rankingViews[i].text = ""
+            }
+        }
+    }
+
+    private fun actualizarPosicionYPuntuacion(posicion: Int, puntuacion: Long?) {
+        if (posicion != -1 && puntuacion != null) {
+            et_posicion.text = "Posición: ${posicion + 1}"
+            et_puntuacion.text = "Puntuación: $puntuacion"
+        } else {
+            et_posicion.text = "Posición: N/A"
+            et_puntuacion.text = "Puntuación: N/A"
+        }
     }
 }
