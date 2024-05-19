@@ -69,23 +69,6 @@ class FireStore {
         }
     }
 
-
-    suspend fun existeEntrega(idActividad: String, idAlumno: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val actividadRef = db.collection("actividades").document(idActividad)
-            val resultado = actividadRef.get().await()
-            if (resultado.exists()) {
-                val entregas = resultado.get("entregas") as? ArrayList<Map<String, Any>> ?: ArrayList()
-                // Verifica si alguna de las entregas en la lista tiene el idAlumno
-                entregas.any { entrega -> entrega["idAlumno"] == idAlumno }
-            } else {
-                false // No existe el documento de actividad, por lo tanto no puede haber entregas
-            }
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     suspend fun actualizarVideoEntrega(idActividad: String, idAlumno: String, nuevoVideo: String) {
         val actividadRef = db.collection("actividades").document(idActividad)
         db.runTransaction { transaction ->
