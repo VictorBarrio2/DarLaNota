@@ -24,6 +24,7 @@ class PaginaVerActividad : AppCompatActivity() {
     private lateinit var botonSubirVideo: Button
     private lateinit var textoDescripcion: TextView
     private lateinit var textoTitulo: TextView
+    private lateinit var fechaCierre: TextView
     private lateinit var textoCalificacion: TextView
     private lateinit var textoEntregado: TextView
     private lateinit var iconoPerfil: ImageView
@@ -52,6 +53,7 @@ class PaginaVerActividad : AppCompatActivity() {
         textoCalificacion = findViewById(R.id.tv_calificacion)
         textoEntregado = findViewById(R.id.tv_entregado)
         iconoActividades = findViewById(R.id.iv_actividadVer)
+        fechaCierre = findViewById(R.id.tv_fechaCierre)
         iconoPerfil = findViewById(R.id.iv_perfilVer)
         iconoRanking = findViewById(R.id.iv_rankingVer)
         botonSubirVideo = findViewById(R.id.bto_subirVideo)
@@ -60,6 +62,8 @@ class PaginaVerActividad : AppCompatActivity() {
         id_actividad = intent.getStringExtra("ACTIVIDAD_ID").orEmpty()
         textoTitulo.text = intent.getStringExtra("TITULO")
         textoDescripcion.text = intent.getStringExtra("DESCRIPCION")
+        fechaCierre.text = "Fecha cierre: " + intent.getStringExtra("FECHA")
+
 
         botonSubirVideo.setOnClickListener {
             seleccionarVideo()

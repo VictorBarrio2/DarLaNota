@@ -8,6 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class AdaptadorAlumno(private val id: String, private val dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
@@ -27,10 +29,18 @@ class AdaptadorAlumno(private val id: String, private val dataList: List<Activid
             intent.putExtra("TITULO", actividad.titulo)
             intent.putExtra("DESCRIPCION", actividad.descripcion)
             intent.putExtra("ID", id)
+
+            // Convertir el Timestamp a una fecha legible si no es nulo
+            actividad.fechafin?.let { timestamp ->
+                val formato = SimpleDateFormat("dd/MM/yyyy")
+                val fecha: Date = timestamp.toDate()
+                val fechaString = formato.format(fecha)
+                intent.putExtra("FECHA", fechaString)
+            }
+
             holder.itemView.context.startActivity(intent)
         }
     }
-
 
     override fun getItemCount(): Int = dataList.size
 

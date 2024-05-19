@@ -15,6 +15,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
 import java.io.File
+import java.util.Calendar
 
 class FireStore {
     val db = FirebaseFirestore.getInstance()
@@ -224,6 +225,26 @@ class FireStore {
         } catch (e: Exception) {
             Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
             null
+        }
+    }
+
+    suspend fun eliminarActividadesAntiguas() = withContext(Dispatchers.IO) {
+        try {
+            val actividadesRef = db.collection("actividades")
+            val snapshot = actividadesRef.get().await()
+            val ahora = Calendar.getInstance().time
+
+            for (documento in snapshot.documents) {
+                val actividad = documento.toObject(Actividad::class.java)
+                if (actividad != null && actividad.fechafin != null) {
+                    if (actividad.fechafin!!.toDate().before(ahora)) {
+                        actividadesRef.document(documento.id).delete().await()
+                        Log.d("Firestore", "Actividad con ID ${documento.id} eliminada")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al eliminar actividades antiguas: ${e.localizedMessage}", e)
         }
     }
 }

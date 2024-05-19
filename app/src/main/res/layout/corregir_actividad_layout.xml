@@ -21,6 +21,7 @@
         android:id="@+id/sp_alumnos"
         android:layout_width="325dp"
         android:layout_height="54dp"
+        android:scrollbarSize="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"

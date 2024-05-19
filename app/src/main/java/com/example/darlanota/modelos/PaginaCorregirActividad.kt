@@ -58,7 +58,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private fun configurarListeners() {
         imgRanking.setOnClickListener { startActivity(Intent(this, PaginaRankingProfe::class.java)) }
         imgPerfil.setOnClickListener { startActivity(Intent(this, PaginaPerfilProfe::class.java)) }
-        imgActividades.setOnClickListener { startActivity(Intent(this, PaginaRankingProfe::class.java)) }
+        imgActividades.setOnClickListener { startActivity(Intent(this, PaginaActividadProfe::class.java)) }
         btnCorregir.setOnClickListener {
             val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem?.toString()
             if (nombreAlumnoSeleccionado != null) {
