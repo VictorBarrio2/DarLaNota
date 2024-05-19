@@ -10,6 +10,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.darlanota.R
 import com.example.darlanota.clases.FireStore
 import kotlinx.coroutines.*
@@ -59,17 +60,46 @@ class PaginaCorregirActividad : AppCompatActivity() {
         imgPerfil.setOnClickListener { startActivity(Intent(this, PaginaPerfilProfe::class.java)) }
         imgActividades.setOnClickListener { startActivity(Intent(this, PaginaRankingProfe::class.java)) }
         btnCorregir.setOnClickListener {
-            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
-            val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
+            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem?.toString()
+            if (nombreAlumnoSeleccionado != null) {
+                val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
 
-            if (idAlumnoActual != null) {
-                val fragmentoCalificar = FragmentoCalificar.newInstance(idAlumnoActual, idActividad)
-                fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
+                if (idAlumnoActual != null) {
+                    val fragmentoCalificar = FragmentoCalificar.newInstance(idAlumnoActual, idActividad)
+                    fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
+                } else {
+                    Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error: No se ha seleccionado ningún alumno.", Toast.LENGTH_SHORT).show()
             }
         }
+
+        btnDescargar.setOnClickListener {
+            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
+            val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
+            if (idAlumnoActual != null && idActividad.isNotEmpty()) {
+                lifecycleScope.launch {
+                    val videoPath = firestore.obtenerRutaVideo(idActividad, idAlumnoActual)
+                    if (videoPath != null) {
+                        try {
+                            firestore.descargarVideo(this@PaginaCorregirActividad, videoPath)
+                            Toast.makeText(this@PaginaCorregirActividad, "Video descargado en la galería", Toast.LENGTH_LONG).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(this@PaginaCorregirActividad, "Error al descargar el video: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Log.d("VideoDownload", "No se encontró la ruta del video.")
+                        Toast.makeText(this@PaginaCorregirActividad, "Ruta del video no encontrada", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else {
+                Toast.makeText(this@PaginaCorregirActividad, "Error: No se pudo obtener el ID del alumno o de la actividad.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     }
+
 
     private suspend fun actualizarListaEstudiantes(idActividad: String) {
         val idsAlumnos = obtenerIdsDeAlumnosPorActividad(idActividad)

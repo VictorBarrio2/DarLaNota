@@ -1,8 +1,10 @@
 package com.example.darlanota.clases
 
+import android.content.ContentValues
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
-import com.example.darlanota.modelos.PaginaLogin
+import com.example.darlanota.modelos.PaginaCorregirActividad
 import com.google.api.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
@@ -10,12 +12,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.google.firebase.Timestamp
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
-import kotlinx.coroutines.withContext
+import java.io.File
 
 class FireStore {
-    // Instancia de Firestore para acceder a la base de datos de Firebase.
-    val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val storage = FirebaseStorage.getInstance()
     suspend fun altaUsuario(id: String, usuario: Usuario) = withContext(Dispatchers.IO) {
         try {
             // Usa 'set' en lugar de 'add' para poder especificar el ID del documento.
@@ -130,20 +133,6 @@ class FireStore {
         }
     }
 
-    suspend fun obtenerNombreAlumno(idAlumno: String): String? = withContext(Dispatchers.IO) {
-        try {
-            val docAlumno = db.collection("usuarios").document(idAlumno).get().await()
-            if (docAlumno.exists()) {
-                docAlumno.getString("nombre")
-            } else {
-                Log.e("Firestore", "No se encontró el alumno con ID: $idAlumno")
-                null
-            }
-        } catch (e: Exception) {
-            Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
-            null
-        }
-    }
 
     suspend fun actualizarCalificacionEntrega(idActividad: String, idAlumno: String, nuevaCalificacion: Int) = withContext(Dispatchers.IO) {
         try {
@@ -170,4 +159,71 @@ class FireStore {
         }
     }
 
+    suspend fun obtenerRutaVideo(idActividad: String, idAlumno: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val actividadDoc = db.collection("actividades").document(idActividad).get().await()
+            val entregas = actividadDoc.get("entregas") as List<Map<String, Any>>?
+            val entrega = entregas?.find { it["idAlumno"] == idAlumno }
+            val videoPath = entrega?.get("video") as String?
+            Log.d("Firestore", "Video path obtenida: $videoPath")
+            videoPath
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener la ruta del video: ${e.localizedMessage}", e)
+            null
+        }
+    }
+
+    suspend fun descargarVideo(context: PaginaCorregirActividad, videoPath: String) = withContext(Dispatchers.IO) {
+        try {
+            val storageRef = storage.reference
+            val videoRef = storageRef.child(videoPath)
+            val localFile = File.createTempFile("video", ".mp4", context.cacheDir)
+
+            videoRef.getFile(localFile).await()
+
+            saveVideoToGallery(context, localFile)
+
+            Log.d("FirebaseStorage", "Video descargado exitosamente en ${localFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("FirebaseStorage", "Error al descargar el video: ${e.localizedMessage}", e)
+        }
+    }
+
+    private fun saveVideoToGallery(context: PaginaCorregirActividad, file: File) {
+        val values = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, file.name)
+            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/")
+            } else {
+                val videosDir = File(context.getExternalFilesDir(null), "Movies")
+                if (!videosDir.exists()) {
+                    videosDir.mkdirs()
+                }
+                put(MediaStore.Video.Media.DATA, File(videosDir, file.name).absolutePath)
+            }
+        }
+
+        val resolver = context.contentResolver
+        resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)?.also { uri ->
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                file.inputStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+        }
+    }
+
+    // Método para obtener el nombre del alumno
+    suspend fun obtenerNombreAlumno(idAlumno: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val alumnoDoc = db.collection("usuarios").document(idAlumno).get().await()
+            val nombre = alumnoDoc.getString("nombre")
+            Log.d("Firestore", "Nombre del alumno obtenido: $nombre")
+            nombre
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
+            null
+        }
+    }
 }
