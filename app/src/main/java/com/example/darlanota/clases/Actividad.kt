@@ -26,6 +26,7 @@ data class Actividad(
                 println("Actividad añadido con éxito a través de FireStore con ID: $id")
             } catch (e: Exception) {
                 println("Error al añadir actividad: ${e.localizedMessage}")
+                firestore.registrarIncidencia("Error al añadir actividad: ${e.localizedMessage}")
             }
         }
     }

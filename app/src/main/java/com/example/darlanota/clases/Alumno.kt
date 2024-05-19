@@ -26,6 +26,7 @@ class Alumno(
                 firestore.altaUsuario(id, this@Alumno)
                 println("Alumno añadido con éxito a través de FireStore con ID: $id")
             } catch (e: Exception) {
+                firestore.registrarIncidencia("Error al añadir alumno: ${e.localizedMessage}")
                 println("Error al añadir alumno: ${e.localizedMessage}")
             }
         }

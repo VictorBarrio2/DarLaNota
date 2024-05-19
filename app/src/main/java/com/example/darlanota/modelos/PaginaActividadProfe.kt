@@ -59,6 +59,8 @@ class PaginaActividadProfe : AppCompatActivity() {
                 reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadProfe)
                 reciclador.adapter = adaptadorProfe
             } catch (e: Exception) {
+                val firestore = FireStore()
+                firestore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
                 Toast.makeText(this@PaginaActividadProfe, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
         }

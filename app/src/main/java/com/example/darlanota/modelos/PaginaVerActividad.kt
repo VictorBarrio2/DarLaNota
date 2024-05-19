@@ -103,7 +103,7 @@ class PaginaVerActividad : AppCompatActivity() {
                     )
                     entregado = true
                     textoEntregado.text = "Entregado: Sí"
-                    if(entrega.calificacion > 0){
+                    if(entrega.calificacion >= 0){
                         textoCalificacion.text = "Calificación: ${entrega.calificacion}"
                     }else{
                         textoCalificacion.text = "Calificación: No calificado"

@@ -129,6 +129,7 @@ class PaginaLogin : AppCompatActivity() {
                         }
 
                     } else {
+                        val firestore = FireStore()
                         mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
                     }
                 }

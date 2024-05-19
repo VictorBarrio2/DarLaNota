@@ -9,20 +9,20 @@ import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import com.google.firebase.Timestamp
+import java.util.Date
+import kotlinx.coroutines.withContext
 
 class FireStore {
     // Instancia de Firestore para acceder a la base de datos de Firebase.
     val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-
-    // Método para añadir un usuario a la base de datos.
-    // Usuario puede ser un Alumno o un Profesor.
-    // El tipo de usuario se maneja internamente según la clase del objeto.
     suspend fun altaUsuario(id: String, usuario: Usuario) = withContext(Dispatchers.IO) {
         try {
             // Usa 'set' en lugar de 'add' para poder especificar el ID del documento.
             db.collection("usuarios").document(id).set(usuario).await()
             "Usuario añadido con éxito con ID: $id"
         } catch (e: Exception) {
+            registrarIncidencia("Error al añadir usuario: ${e.localizedMessage}")
             Log.e("FireStore", "Error al añadir usuario: ${e.localizedMessage}", e)
             "Error al añadir usuario: ${e.localizedMessage}"
         }
@@ -34,6 +34,7 @@ class FireStore {
             Log.d("FireStore", "Actividad añadida con éxito, ID: ${documento.id}")
         } catch (e: Exception) {
             Log.e("FireStore", "Error al añadir actividad: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al añadir actividad: ${e.localizedMessage}")
         }
     }
 
@@ -50,6 +51,7 @@ class FireStore {
             }
         } catch (e: Exception) {
             Log.e("FireStore", "Error al cargar actividades: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
         }
         actividadesList  // Retornar la lista de actividades
     }
@@ -65,6 +67,7 @@ class FireStore {
             }.await()
             Result.success("Entrega agregada exitosamente a la actividad")
         } catch (e: Exception) {
+            registrarIncidencia(e.localizedMessage)
             Result.failure(e)
         }
     }
@@ -81,32 +84,12 @@ class FireStore {
             }
         }.await()
     }
-
-    suspend fun obtenerCalificacionEntrega(idActividad: String, idAlumno: String): Int? = withContext(Dispatchers.IO) {
-        try {
-            val actividadRef = db.collection("actividades").document(idActividad)
-            val resultado = actividadRef.get().await()
-            if (resultado.exists()) {
-                val entregas = resultado.get("entregas") as? ArrayList<Map<String, Any>> ?: ArrayList()
-                val entrega = entregas.find { it["idAlumno"] == idAlumno }
-                if (entrega != null) {
-                    Log.d("FireStore", "Entrega encontrada: $entrega")
-                    val calificacion = entrega["calificacion"]
-                    Log.d("FireStore", "Calificación obtenida: $calificacion, tipo: ${calificacion?.javaClass?.name}")
-                    (calificacion as? Long)?.toInt() ?: calificacion as? Int
-                } else {
-                    Log.d("FireStore", "No se encontró entrega para el alumno con id: $idAlumno")
-                    null
-                }
-            } else {
-                Log.d("FireStore", "El documento de actividad con id $idActividad no existe")
-                null
-            }
-        } catch (e: Exception) {
-            Log.e("FireStore", "Error al obtener la calificación de la entrega: ${e.localizedMessage}", e)
-            null
-        }
+    suspend fun registrarIncidencia(descripcion: String) {
+        val nuevaIncidencia = Incidencia(
+            fechafin = Timestamp(Date()),
+            descripcion = descripcion
+        )
+        db.collection("incidencias").add(nuevaIncidencia).await()
     }
-
 
 }

@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
+import com.example.darlanota.clases.FireStore
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
@@ -78,6 +79,8 @@ class PaginaAltaActividad : AppCompatActivity() {
                     Toast.makeText(this@PaginaAltaActividad, "Actividad creada exitosamente.", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this@PaginaAltaActividad, PaginaActividadProfe::class.java))
                 } catch (e: Exception) {
+                    val firestore = FireStore()
+                    firestore.registrarIncidencia("Error al añadir actividad: ${e.localizedMessage}")
                     Log.e("Firestore", "Error al añadir actividad: ${e.localizedMessage}")
                 }
             }
@@ -112,6 +115,8 @@ class PaginaAltaActividad : AppCompatActivity() {
             db.collection("actividades").add(actividad).await()
             Log.d("Firestore", "Actividad añadida correctamente")
         } catch (e: Exception) {
+            val firestore = FireStore()
+            firestore.registrarIncidencia("Error al añadir actividad: ${e.localizedMessage}")
             Log.e("Firestore", "Error al añadir actividad: ${e.localizedMessage}", e)
         }
     }
