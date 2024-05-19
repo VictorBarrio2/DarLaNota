@@ -130,6 +130,7 @@ class FireStore {
                 Log.d("Firestore", "Nueva puntuación del alumno $idAlumno es: $nuevaPuntuacion")
             }.await()
         } catch (e: Exception) {
+            registrarIncidencia("Error al incrementar la puntuación: ${e.localizedMessage}")
             Log.e("Firestore", "Error al incrementar la puntuación: ${e.localizedMessage}", e)
         }
     }
@@ -157,6 +158,7 @@ class FireStore {
             }.await()
         } catch (e: Exception) {
             Log.e("Firestore", "Error al actualizar la calificación: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al actualizar la calificación: ${e.localizedMessage}")
         }
     }
 
@@ -170,6 +172,7 @@ class FireStore {
             videoPath
         } catch (e: Exception) {
             Log.e("Firestore", "Error al obtener la ruta del video: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al obtener la ruta del video: ${e.localizedMessage}")
             null
         }
     }
@@ -186,6 +189,7 @@ class FireStore {
 
             Log.d("FirebaseStorage", "Video descargado exitosamente en ${localFile.absolutePath}")
         } catch (e: Exception) {
+            registrarIncidencia("Error al descargar el video: ${e.localizedMessage}")
             Log.e("FirebaseStorage", "Error al descargar el video: ${e.localizedMessage}", e)
         }
     }
@@ -223,6 +227,7 @@ class FireStore {
             Log.d("Firestore", "Nombre del alumno obtenido: $nombre")
             nombre
         } catch (e: Exception) {
+            registrarIncidencia("Error al obtener el nombre del alumno: ${e.localizedMessage}")
             Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
             null
         }
@@ -233,6 +238,7 @@ class FireStore {
             db.collection("actividades").document(idActividad).delete().await()
             Log.d("Firestore", "Actividad eliminada correctamente")
         } catch (e: Exception) {
+            registrarIncidencia("Error al eliminar la actividad: ${e.localizedMessage}")
             Log.e("Firestore", "Error al eliminar la actividad: ${e.localizedMessage}", e)
         }
     }

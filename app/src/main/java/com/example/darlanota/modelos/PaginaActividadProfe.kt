@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.FireStore
 import kotlinx.coroutines.*
+import java.util.Date
 
 class PaginaActividadProfe : AppCompatActivity() {
 
@@ -55,7 +56,21 @@ class PaginaActividadProfe : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
-                adaptadorProfe = AdaptadorProfe(id, actividadesList)
+
+                // Filtrar actividades pasadas y eliminarlas
+                val actividadesValidas = actividadesList.filter { actividad ->
+                    val fechaFin = actividad.fechafin?.toDate()
+                    if (fechaFin != null && fechaFin.before(Date())) {
+                        withContext(Dispatchers.IO) {
+                            fireStore.eliminarActividad(actividad.id)
+                        }
+                        false
+                    } else {
+                        true
+                    }
+                }
+
+                adaptadorProfe = AdaptadorProfe(id, actividadesValidas)
                 reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadProfe)
                 reciclador.adapter = adaptadorProfe
             } catch (e: Exception) {
