@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
 import com.example.darlanota.clases.FireStore
@@ -16,24 +17,25 @@ import kotlinx.coroutines.Dispatchers
 
 class PaginaCorregirActividad : AppCompatActivity() {
 
-    private lateinit var btnDescargar : Button
-    private lateinit var btnCorregir : Button
-    private lateinit var txtTitulo : TextView
-    private lateinit var txtCorregido : TextView
-    private lateinit var imgPerfil : ImageView
-    private lateinit var imgActividades : ImageView
-    private lateinit var imgRanking : ImageView
-    private lateinit var spinnerAlumnos : Spinner
+    private lateinit var btnDescargar: Button
+    private lateinit var btnCorregir: Button
+    private lateinit var txtTitulo: TextView
+    private lateinit var txtCorregido: TextView
+    private lateinit var imgPerfil: ImageView
+    private lateinit var imgActividades: ImageView
+    private lateinit var imgRanking: ImageView
+    private lateinit var spinnerAlumnos: Spinner
     private val firestore = FireStore()
     private var mapaIdAlumno: MutableMap<String, String> = mutableMapOf()
+    private lateinit var idActividad: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.corregir_actividad_layout)
 
+        idActividad = intent.getStringExtra("ACTIVIDAD_ID") ?: ""  // Corrección aquí
         configurarUI()
-        val idActividad = intent.getStringExtra("ACTIVIDAD_ID").orEmpty()
-        txtTitulo.text = intent.getStringExtra("TITULO").orEmpty()
+        txtTitulo.text = intent.getStringExtra("TITULO") ?: ""
 
         CoroutineScope(Dispatchers.Main).launch {
             actualizarListaEstudiantes(idActividad)
@@ -57,8 +59,15 @@ class PaginaCorregirActividad : AppCompatActivity() {
         imgPerfil.setOnClickListener { startActivity(Intent(this, PaginaPerfilProfe::class.java)) }
         imgActividades.setOnClickListener { startActivity(Intent(this, PaginaRankingProfe::class.java)) }
         btnCorregir.setOnClickListener {
-            val fragmentoCalificar = FragmentoCalificar()
-            fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
+            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
+            val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
+
+            if (idAlumnoActual != null) {
+                val fragmentoCalificar = FragmentoCalificar.newInstance(idAlumnoActual, idActividad)
+                fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
+            } else {
+                Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

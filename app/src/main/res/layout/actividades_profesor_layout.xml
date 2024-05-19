@@ -43,8 +43,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_reclicadorProfe"
-        android:layout_width="401dp"
-        android:layout_height="368dp"
+        android:layout_width="381dp"
+        android:layout_height="363dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

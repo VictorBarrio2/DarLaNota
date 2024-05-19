@@ -117,13 +117,13 @@ class FireStore {
 
     suspend fun incrementarPuntuacionAlumno(idAlumno: String, valorIncremento: Int) = withContext(Dispatchers.IO) {
         try {
-            val alumnoRef = db.collection("alumnos").document(idAlumno)
+            val alumnoRef = db.collection("usuarios").document(idAlumno)
             db.runTransaction { transaction ->
                 val snapshot = transaction.get(alumnoRef)
                 val puntuacionActual = snapshot.getLong("puntuacion") ?: 0L  // Obtiene la puntuación actual o 0 si no existe
                 val nuevaPuntuacion = puntuacionActual + valorIncremento
                 transaction.update(alumnoRef, "puntuacion", nuevaPuntuacion)
-                nuevaPuntuacion  // Retorna la nueva puntuación
+                Log.d("Firestore", "Nueva puntuación del alumno $idAlumno es: $nuevaPuntuacion")
             }.await()
         } catch (e: Exception) {
             Log.e("Firestore", "Error al incrementar la puntuación: ${e.localizedMessage}", e)
@@ -142,6 +142,31 @@ class FireStore {
         } catch (e: Exception) {
             Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
             null
+        }
+    }
+
+    suspend fun actualizarCalificacionEntrega(idActividad: String, idAlumno: String, nuevaCalificacion: Int) = withContext(Dispatchers.IO) {
+        try {
+            val actividadRef = db.collection("actividades").document(idActividad)
+            db.runTransaction { transaction ->
+                val actividadSnapshot = transaction.get(actividadRef)
+                if (actividadSnapshot.exists()) {
+                    val entregas = actividadSnapshot.get("entregas") as? MutableList<Map<String, Any>> ?: mutableListOf()
+                    val entregaIndex = entregas.indexOfFirst { it["idAlumno"] == idAlumno }
+                    if (entregaIndex != -1) {
+                        val entregaActualizada = entregas[entregaIndex].toMutableMap()
+                        entregaActualizada["calificacion"] = nuevaCalificacion
+                        entregas[entregaIndex] = entregaActualizada
+                        transaction.update(actividadRef, "entregas", entregas)
+                    } else {
+                        Log.e("Firestore", "No se encontró la entrega del alumno: $idAlumno")
+                    }
+                } else {
+                    Log.e("Firestore", "No se encontró la actividad: $idActividad")
+                }
+            }.await()
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al actualizar la calificación: ${e.localizedMessage}", e)
         }
     }
 
