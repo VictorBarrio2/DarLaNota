@@ -109,6 +109,8 @@ class PaginaLogin : AppCompatActivity() {
                                             startActivity(intent)
                                         } else {
                                             mostrarAlerta("Error de inicio de sesión", "Usuario no válido.")
+                                            val firestore = FireStore()
+                                            firestore.registrarIncidencia("Error de inicio de sesión")
                                         }
                                     }
                                     "profesor" -> {
@@ -119,6 +121,8 @@ class PaginaLogin : AppCompatActivity() {
                                             startActivity(intent)
                                         } else {
                                             mostrarAlerta("Error de inicio de sesión", "Usuario no válido.")
+                                            val firestore = FireStore()
+                                            firestore.registrarIncidencia("Error de inicio de sesión")
                                         }
                                     }
                                     else -> mostrarAlerta("Error de inicio de sesión", "Tipo de usuario desconocido.")

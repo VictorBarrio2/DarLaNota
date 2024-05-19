@@ -113,6 +113,8 @@ class PaginaVerActividad : AppCompatActivity() {
                     textoEntregado.text = "Entregado: No"
                 }
             } catch (e: Exception) {
+                val firestore = FireStore()
+                firestore.registrarIncidencia("Error al verificar la entrega: ${e.localizedMessage}")
                 Log.e("FireStore", "Error al verificar la entrega: ${e.localizedMessage}", e)
             }
         }

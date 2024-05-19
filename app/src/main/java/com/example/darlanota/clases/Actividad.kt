@@ -13,6 +13,7 @@ data class Actividad(
     var fechafin: Timestamp? = null,  // Puede ser nulo para cumplir con la necesidad de un constructor sin argumentos.
     var titulo: String = "",
     var id_profesor: String = "",
+    var instrumento: String = "",
     var entregas: MutableList<Entrega> = mutableListOf()  // Se asegura de que `Entrega` también tenga un constructor sin argumentos si es necesario.
 ) {
     fun subirActividadFirestore() {

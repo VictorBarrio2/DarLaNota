@@ -30,11 +30,12 @@ class FireStore {
 
     suspend fun altaActividad(actividad: Actividad) = withContext(Dispatchers.IO) {
         try {
-            val documento = db.collection("actividades").add(actividad).await()
-            Log.d("FireStore", "Actividad añadida con éxito, ID: ${documento.id}")
+            db.collection("actividades").add(actividad).await()
+            Log.d("Firestore", "Actividad añadida correctamente")
         } catch (e: Exception) {
-            Log.e("FireStore", "Error al añadir actividad: ${e.localizedMessage}", e)
-            registrarIncidencia("Error al añadir actividad: ${e.localizedMessage}")
+            val firestore = FireStore()
+            firestore.registrarIncidencia("Error al añadir actividad: ${e.localizedMessage}")
+            Log.e("Firestore", "Error al añadir actividad: ${e.localizedMessage}", e)
         }
     }
 
@@ -90,6 +91,58 @@ class FireStore {
             descripcion = descripcion
         )
         db.collection("incidencias").add(nuevaIncidencia).await()
+    }
+
+
+    suspend fun obtenerIdsDeAlumnosDeEntregasPorActividad(idActividad: String): List<String> = withContext(Dispatchers.IO) {
+        try {
+            // Accede al documento de la actividad
+            val actividadDoc = db.collection("actividades").document(idActividad).get().await()
+            if (actividadDoc.exists()) {
+                // Obtiene el array de entregas del documento de la actividad
+                val entregas = actividadDoc.get("entregas") as? List<Map<String, Any>> ?: emptyList()
+                // Mapea cada objeto de entrega a la ID del alumno
+                entregas.mapNotNull { entrega ->
+                    entrega["idAlumno"] as? String
+                }
+            } else {
+                emptyList() // Devuelve una lista vacía si no se encuentra el documento
+            }
+        } catch (e: Exception) {
+            registrarIncidencia("Error al obtener las IDs de los alumnos de las entregas: ${e.localizedMessage}")
+            Log.e("Firestore","Error al obtener las IDs de los alumnos de las entregas: ${e.localizedMessage}", e)
+            emptyList()
+        }
+    }
+
+    suspend fun incrementarPuntuacionAlumno(idAlumno: String, valorIncremento: Int) = withContext(Dispatchers.IO) {
+        try {
+            val alumnoRef = db.collection("alumnos").document(idAlumno)
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(alumnoRef)
+                val puntuacionActual = snapshot.getLong("puntuacion") ?: 0L  // Obtiene la puntuación actual o 0 si no existe
+                val nuevaPuntuacion = puntuacionActual + valorIncremento
+                transaction.update(alumnoRef, "puntuacion", nuevaPuntuacion)
+                nuevaPuntuacion  // Retorna la nueva puntuación
+            }.await()
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al incrementar la puntuación: ${e.localizedMessage}", e)
+        }
+    }
+
+    suspend fun obtenerNombreAlumno(idAlumno: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val docAlumno = db.collection("usuarios").document(idAlumno).get().await()
+            if (docAlumno.exists()) {
+                docAlumno.getString("nombre")
+            } else {
+                Log.e("Firestore", "No se encontró el alumno con ID: $idAlumno")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
+            null
+        }
     }
 
 }

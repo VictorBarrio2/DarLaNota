@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/tv_tituloActividadAlta"
+        android:id="@+id/tv_tituloCorregir"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Titulo Actividad"
@@ -19,8 +19,8 @@
 
     <Spinner
         android:id="@+id/sp_alumnos"
-        android:layout_width="171dp"
-        android:layout_height="56dp"
+        android:layout_width="325dp"
+        android:layout_height="54dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
