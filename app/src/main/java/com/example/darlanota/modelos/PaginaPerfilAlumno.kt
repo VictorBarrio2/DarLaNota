@@ -22,47 +22,49 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var bto_contra: Button
     private lateinit var iv_ranking: ImageView
     private lateinit var iv_actividades: ImageView
-    private lateinit var iv_nota: ImageView
     private lateinit var iv_cerrarSesion: ImageView
     private lateinit var et_contra: EditText
     private lateinit var tv_nombre: TextView
     private lateinit var id: String
+    private lateinit var fireStore : FireStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.perfil_alumno_layout)
 
-        // Get the ID from the Intent
-        id = intent.getStringExtra("ID") ?: "DefaultID" // Provide a default ID or handle the case where ID is null
+        id = intent.getStringExtra("ID") ?: "DefaultID"
+        initializeViews()
+        configureTheme()
+        loadUserData()
 
-        // Inicialización de vistas
+        setupEventHandlers()
+    }
+
+    private fun initializeViews() {
         iv_ranking = findViewById(R.id.iv_rankingPerfil)
         iv_actividades = findViewById(R.id.iv_actividadesPerfil)
         bto_contra = findViewById(R.id.bto_cambiarContra)
         bto_instrumento = findViewById(R.id.bto_cambiarInstrumento)
-        iv_nota = findViewById(R.id.iv_notaPerfil)
         et_contra = findViewById(R.id.et_contraPerfilAlumno)
         iv_cerrarSesion = findViewById(R.id.iv_salir)
         tv_nombre = findViewById(R.id.tv_nickPerfil)
+        fireStore = FireStore()
+    }
 
+    private fun configureTheme() {
+        // Set the light theme always
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+    }
+
+    private fun loadUserData() {
         val fireStore = FireStore()
-
         CoroutineScope(Dispatchers.Main).launch {
             val nombre = fireStore.obtenerNombreUsuario(id)
-            tv_nombre.text = nombre ?: "Nombre no disponible" // Handle the case where name might be null
+            tv_nombre.text = nombre ?: "Nombre no disponible"
         }
+    }
 
-        val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
-        val isDarkModeEnabled = sharedPreferences.getBoolean("tema_oscuro_activado", false)
-        if (isDarkModeEnabled) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            iv_nota.setImageResource(R.drawable.luna)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            iv_nota.setImageResource(R.drawable.sol)
-        }
-
-        // Manejadores de eventos
+    private fun setupEventHandlers() {
         bto_instrumento.setOnClickListener {
             startActivity(Intent(this, PaginaInstrumentos::class.java))
         }
@@ -103,39 +105,26 @@ class PaginaPerfilAlumno : AppCompatActivity() {
             }
         }
 
-        iv_nota.setOnClickListener {
-            guardarPreferenciaTema(!isDarkModeEnabled)
-            alternarTema()
-        }
+
 
         iv_cerrarSesion.setOnClickListener {
-            val sharedPreferences = getSharedPreferences("login_preferences", MODE_PRIVATE)
-            with(sharedPreferences.edit()) {
-                remove("nick")
-                remove("contraseña")
-                putBoolean("guardar_credenciales", false)
-                apply()
-            }
-            finishAffinity()
-            startActivity(Intent(this, PaginaLogin::class.java))
+            clearLoginPreferences()
+            logout()
         }
     }
 
-    private fun guardarPreferenciaTema(temaOscuroActivado: Boolean) {
-        val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
+    private fun clearLoginPreferences() {
+        val sharedPreferences = getSharedPreferences("login_preferences", MODE_PRIVATE)
         with(sharedPreferences.edit()) {
-            putBoolean("tema_oscuro_activado", temaOscuroActivado)
+            remove("nick")
+            remove("contraseña")
+            putBoolean("guardar_credenciales", false)
             apply()
         }
     }
 
-    private fun alternarTema() {
-        val temaOscuroActivado = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
-        if (temaOscuroActivado) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        }
-        recreate()
+    private fun logout() {
+        finishAffinity()
+        startActivity(Intent(this, PaginaLogin::class.java))
     }
 }
