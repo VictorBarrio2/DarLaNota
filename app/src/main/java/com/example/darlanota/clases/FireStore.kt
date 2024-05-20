@@ -12,11 +12,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
 import java.io.File
 import java.util.Calendar
-
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 class FireStore {
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
@@ -220,18 +222,6 @@ class FireStore {
     }
 
     // Método para obtener el nombre del alumno
-    suspend fun obtenerNombreAlumno(idAlumno: String): String? = withContext(Dispatchers.IO) {
-        try {
-            val alumnoDoc = db.collection("usuarios").document(idAlumno).get().await()
-            val nombre = alumnoDoc.getString("nombre")
-            Log.d("Firestore", "Nombre del alumno obtenido: $nombre")
-            nombre
-        } catch (e: Exception) {
-            registrarIncidencia("Error al obtener el nombre del alumno: ${e.localizedMessage}")
-            Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
-            null
-        }
-    }
 
     suspend fun eliminarActividad(idActividad: String) = withContext(Dispatchers.IO) {
         try {
@@ -263,15 +253,6 @@ class FireStore {
         }
     }
 
-    suspend fun obtenerPuntuacionUsuario(idAlumno: String): Long? = withContext(Dispatchers.IO) {
-        try {
-            val alumnoDoc = db.collection("usuarios").document(idAlumno).get().await()
-            alumnoDoc.getLong("puntuacion")
-        } catch (e: Exception) {
-            Log.e("Firestore", "Error al obtener la puntuación del alumno: ${e.localizedMessage}", e)
-            null
-        }
-    }
 
     suspend fun obtenerNombreUsuario(idAlumno: String): String? = withContext(Dispatchers.IO) {
         try {
@@ -282,4 +263,29 @@ class FireStore {
             null
         }
     }
+
+    suspend fun cambiarContrasenaUsuario(nuevaContrasena: String) = withContext(Dispatchers.IO) {
+        try {
+            val usuario = Firebase.auth.currentUser // Obtiene el usuario actualmente autenticado
+
+            usuario?.let {
+                // Actualizar la contraseña en Firebase Auth
+                it.updatePassword(nuevaContrasena).await()
+
+                // Actualizar la contraseña en Firestore
+                val usuarioRef = db.collection("usuarios").document(it.uid)
+                db.runTransaction { transaction ->
+                    transaction.update(usuarioRef, "contrasena", nuevaContrasena)
+                }.await()
+
+                Log.d("Firestore", "Contraseña actualizada correctamente para el usuario: ${it.uid}")
+                "Contraseña actualizada exitosamente"
+            } ?: throw Exception("No hay usuario autenticado")
+        } catch (e: Exception) {
+            registrarIncidencia("Error al cambiar la contraseña: ${e.localizedMessage}")
+            Log.e("Firestore", "Error al cambiar la contraseña: ${e.localizedMessage}", e)
+            "Error al cambiar la contraseña: ${e.localizedMessage}"
+        }
+    }
+
 }

@@ -70,12 +70,15 @@ class PaginaRankingProfe : AppCompatActivity() {
     private fun actualizarRanking(ranking: List<Pair<String, Long>>) {
         val rankingViews = listOf(et_1, et_2, et_3, et_4, et_5, et_6, et_7, et_8, et_9, et_10)
 
-        for (i in rankingViews.indices) {
-            if (i < ranking.size) {
-                rankingViews[i].text = ranking[i].first
+        // Itera sobre cada TextView y establece el texto según el ranking o lo deja en blanco si no hay suficientes usuarios
+        rankingViews.forEachIndexed { index, textView ->
+            textView.text = if (index < ranking.size) {
+                "${index + 1}. ${ranking[index].first}"
             } else {
-                rankingViews[i].text = ""
+                "" // Limpia el TextView si no hay suficientes entradas
             }
         }
     }
+
+
 }

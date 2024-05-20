@@ -104,7 +104,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private suspend fun actualizarListaEstudiantes(idActividad: String) {
         val idsAlumnos = obtenerIdsDeAlumnosPorActividad(idActividad)
         idsAlumnos.forEach { id ->
-            val nombre = firestore.obtenerNombreAlumno(id)
+            val nombre = firestore.obtenerNombreUsuario(id)
             if (nombre != null) {
                 mapaIdAlumno[nombre] = id
             }

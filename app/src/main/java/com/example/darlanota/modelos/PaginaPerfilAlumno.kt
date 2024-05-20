@@ -5,10 +5,16 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.darlanota.R
+import com.example.darlanota.clases.FireStore
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class PaginaPerfilAlumno : AppCompatActivity() {
 
@@ -19,13 +25,17 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var iv_nota: ImageView
     private lateinit var iv_cerrarSesion: ImageView
     private lateinit var et_contra: EditText
+    private lateinit var tv_nombre: TextView
+    private lateinit var id: String
 
-
-    private lateinit var id : String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.perfil_alumno_layout)
-        id = intent.getStringExtra("ID").toString()
+
+        // Get the ID from the Intent
+        id = intent.getStringExtra("ID") ?: "DefaultID" // Provide a default ID or handle the case where ID is null
+
+        // Inicialización de vistas
         iv_ranking = findViewById(R.id.iv_rankingPerfil)
         iv_actividades = findViewById(R.id.iv_actividadesPerfil)
         bto_contra = findViewById(R.id.bto_cambiarContra)
@@ -33,6 +43,14 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         iv_nota = findViewById(R.id.iv_notaPerfil)
         et_contra = findViewById(R.id.et_contraPerfilAlumno)
         iv_cerrarSesion = findViewById(R.id.iv_salir)
+        tv_nombre = findViewById(R.id.tv_nickPerfil)
+
+        val fireStore = FireStore()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val nombre = fireStore.obtenerNombreUsuario(id)
+            tv_nombre.text = nombre ?: "Nombre no disponible" // Handle the case where name might be null
+        }
 
         val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
         val isDarkModeEnabled = sharedPreferences.getBoolean("tema_oscuro_activado", false)
@@ -44,32 +62,46 @@ class PaginaPerfilAlumno : AppCompatActivity() {
             iv_nota.setImageResource(R.drawable.sol)
         }
 
+        // Manejadores de eventos
         bto_instrumento.setOnClickListener {
-            val intent = Intent(this, PaginaInstrumentos::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, PaginaInstrumentos::class.java))
         }
 
         bto_contra.setOnClickListener {
-            if(et_contra.text.toString().equals("")){
-                Toast.makeText(this, "El campo esta vacio", Toast.LENGTH_SHORT).show()
-            }else{
-                Toast.makeText(this, "Contraseña cambiada", Toast.LENGTH_SHORT).show()
+            CoroutineScope(Dispatchers.Main).launch {
+                val nuevaContrasena = et_contra.text.toString()
+                if (nuevaContrasena.isBlank()) {
+                    Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val usuarioActual = FirebaseAuth.getInstance().currentUser
+                if (usuarioActual != null) {
+                    try {
+                        val resultado = fireStore.cambiarContrasenaUsuario(nuevaContrasena)
+                        Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(this@PaginaPerfilAlumno, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    Toast.makeText(this@PaginaPerfilAlumno, "No hay usuario autenticado. Por favor, inicie sesión.", Toast.LENGTH_LONG).show()
+                }
             }
         }
 
-
         iv_actividades.setOnClickListener {
-            val intent = Intent(this, PaginaActividadAlumno::class.java)
-            intent.putExtra("ID", id)
-            startActivity(intent)
+            Intent(this, PaginaActividadAlumno::class.java).also {
+                it.putExtra("ID", id)
+                startActivity(it)
+            }
         }
 
         iv_ranking.setOnClickListener {
-            val intent = Intent(this, PaginaRankingAlumno::class.java)
-            intent.putExtra("ID", id)
-            startActivity(intent)
+            Intent(this, PaginaRankingAlumno::class.java).also {
+                it.putExtra("ID", id)
+                startActivity(it)
+            }
         }
-
 
         iv_nota.setOnClickListener {
             guardarPreferenciaTema(!isDarkModeEnabled)
@@ -85,16 +117,16 @@ class PaginaPerfilAlumno : AppCompatActivity() {
                 apply()
             }
             finishAffinity()
-            val intent = Intent(this, PaginaLogin::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, PaginaLogin::class.java))
         }
     }
 
     private fun guardarPreferenciaTema(temaOscuroActivado: Boolean) {
         val sharedPreferences = getSharedPreferences("preferencia_tema", MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putBoolean("tema_oscuro_activado", temaOscuroActivado)
-        editor.apply()
+        with(sharedPreferences.edit()) {
+            putBoolean("tema_oscuro_activado", temaOscuroActivado)
+            apply()
+        }
     }
 
     private fun alternarTema() {
