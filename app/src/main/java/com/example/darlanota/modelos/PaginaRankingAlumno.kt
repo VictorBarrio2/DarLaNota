@@ -60,9 +60,12 @@ class PaginaRankingAlumno : AppCompatActivity() {
         }
 
         iv_perfil.setOnClickListener {
-            val intent = Intent(this, PaginaPerfilAlumno::class.java)
-            intent.putExtra("ID", id)
-            startActivity(intent)
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
+                val intent = Intent(this@PaginaRankingAlumno, PaginaPerfilAlumno::class.java)
+                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                startActivity(intent)
+            }
         }
 
         cargarRanking()

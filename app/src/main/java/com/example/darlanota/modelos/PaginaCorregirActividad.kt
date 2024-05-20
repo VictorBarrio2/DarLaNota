@@ -29,11 +29,12 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private val firestore = FireStore()
     private var mapaIdAlumno: MutableMap<String, String> = mutableMapOf()
     private lateinit var idActividad: String
+    private lateinit var id : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.corregir_actividad_layout)
-
+        id = intent.getStringExtra("ID") ?: ""
         idActividad = intent.getStringExtra("ACTIVIDAD_ID") ?: ""  // Corrección aquí
         configurarUI()
         txtTitulo.text = intent.getStringExtra("TITULO") ?: ""
@@ -56,9 +57,22 @@ class PaginaCorregirActividad : AppCompatActivity() {
     }
 
     private fun configurarListeners() {
-        imgRanking.setOnClickListener { startActivity(Intent(this, PaginaRankingProfe::class.java)) }
-        imgPerfil.setOnClickListener { startActivity(Intent(this, PaginaPerfilProfe::class.java)) }
-        imgActividades.setOnClickListener { startActivity(Intent(this, PaginaActividadProfe::class.java)) }
+        imgRanking.setOnClickListener {
+            startActivity(Intent(this, PaginaRankingProfe::class.java))
+            intent.putExtra("ID", id)
+        }
+        imgPerfil.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
+                val intent = Intent(this@PaginaCorregirActividad, PaginaPerfilAlumno::class.java)
+                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                startActivity(intent)
+            }
+        }
+        imgActividades.setOnClickListener {
+            startActivity(Intent(this, PaginaActividadProfe::class.java))
+            intent.putExtra("ID", id)
+        }
         btnCorregir.setOnClickListener {
             val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem?.toString()
             if (nombreAlumnoSeleccionado != null) {

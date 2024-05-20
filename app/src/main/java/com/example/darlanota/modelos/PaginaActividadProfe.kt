@@ -42,9 +42,12 @@ class PaginaActividadProfe : AppCompatActivity() {
         }
 
         ivPerfil.setOnClickListener {
-            startActivity(Intent(this, PaginaPerfilProfe::class.java).apply {
-                putExtra("ID", id)
-            })
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
+                val intent = Intent(this@PaginaActividadProfe, PaginaPerfilAlumno::class.java)
+                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                startActivity(intent)
+            }
         }
 
         btnSubirActividad.setOnClickListener {

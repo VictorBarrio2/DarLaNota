@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.delay
 
 class PaginaAltaActividad : AppCompatActivity() {
     private lateinit var bto_subirActividad: Button
@@ -32,11 +33,14 @@ class PaginaAltaActividad : AppCompatActivity() {
     private lateinit var iv_perfil: ImageView
     private lateinit var iv_ranking: ImageView
     private lateinit var iv_actividad: ImageView
+    private lateinit var id : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.alta_actividad_layout)
         FirebaseApp.initializeApp(this)
+
+        id = intent.getStringExtra("ID") ?: ""
 
         bto_subirActividad = findViewById(R.id.bto_subirActividad)
         tv_fecha = findViewById(R.id.tv_fecha)
@@ -99,13 +103,20 @@ class PaginaAltaActividad : AppCompatActivity() {
 
     private fun setImageViewListeners() {
         iv_perfil.setOnClickListener {
-            startActivity(Intent(this, PaginaPerfilProfe::class.java))
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
+                val intent = Intent(this@PaginaAltaActividad, PaginaPerfilAlumno::class.java)
+                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                startActivity(intent)
+            }
         }
         iv_ranking.setOnClickListener {
             startActivity(Intent(this, PaginaRankingProfe::class.java))
+            intent.putExtra("ID", id)
         }
         iv_actividad.setOnClickListener {
             startActivity(Intent(this, PaginaActividadProfe::class.java))
+            intent.putExtra("ID", id)
         }
     }
 }

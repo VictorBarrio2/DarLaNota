@@ -26,12 +26,14 @@ class PaginaRankingProfe : AppCompatActivity() {
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_perfil: ImageView
 
+    private lateinit var id : String
+
     private val fireStore = FireStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ranking_profe_layout)
-
+        id = intent.getStringExtra("ID") ?: ""
         et_1 = findViewById(R.id.tv_primeraPosPro)
         et_2 = findViewById(R.id.tv_segundaPosPro)
         et_3 = findViewById(R.id.tv_terceraPosPro)
@@ -49,12 +51,17 @@ class PaginaRankingProfe : AppCompatActivity() {
 
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadProfe::class.java)
+            intent.putExtra("ID", id)
             startActivity(intent)
         }
 
         iv_perfil.setOnClickListener {
-            val intent = Intent(this, PaginaPerfilProfe::class.java)
-            startActivity(intent)
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
+                val intent = Intent(this@PaginaRankingProfe, PaginaPerfilAlumno::class.java)
+                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                startActivity(intent)
+            }
         }
 
         cargarRanking()

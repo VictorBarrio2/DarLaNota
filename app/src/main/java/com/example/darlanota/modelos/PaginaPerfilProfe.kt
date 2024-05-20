@@ -83,10 +83,12 @@ class PaginaPerfilProfe : AppCompatActivity() {
 
         iv_actividades.setOnClickListener {
             startActivity(Intent(this, PaginaActividadProfe::class.java))
+            intent.putExtra("ID", id)
         }
 
         iv_ranking.setOnClickListener {
             startActivity(Intent(this, PaginaRankingProfe::class.java))
+            intent.putExtra("ID", id)
         }
 
         iv_nota.setOnClickListener {
