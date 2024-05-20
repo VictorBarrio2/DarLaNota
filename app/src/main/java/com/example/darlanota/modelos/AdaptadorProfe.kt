@@ -4,13 +4,22 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
+import com.example.darlanota.modelos.PaginaCorregirActividad
 
 class AdaptadorProfe(private val profesorId: String, private val dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorProfe.DatosHolder>() {
+
+    private val instrumentDrawableMap = mapOf(
+        "guitarra" to R.drawable.guitarra,
+        "piano" to R.drawable.piano,
+        "batería" to R.drawable.bateria,
+        "canto" to R.drawable.canto
+    )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DatosHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -21,9 +30,10 @@ class AdaptadorProfe(private val profesorId: String, private val dataList: List<
     override fun onBindViewHolder(holder: DatosHolder, position: Int) {
         val actividad = dataList[position]
         holder.textView.text = actividad.titulo
+
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, PaginaCorregirActividad::class.java)
-            intent.putExtra("ACTIVIDAD_ID", actividad.id)  // ID de la actividad
+            intent.putExtra("ACTIVIDAD_ID", actividad.id)
             intent.putExtra("TITULO", actividad.titulo)
             intent.putExtra("ID", profesorId)
             holder.itemView.context.startActivity(intent)
@@ -33,6 +43,10 @@ class AdaptadorProfe(private val profesorId: String, private val dataList: List<
     override fun getItemCount(): Int = dataList.size
 
     class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var textView: TextView = itemView.findViewById(R.id.tv_tituloActividad)
+        var textView: TextView = itemView.findViewById(R.id.tv_tituloActividades)
+    }
+
+    private fun getDrawableResourceId(instrumento: String): Int {
+        return instrumentDrawableMap[instrumento.toLowerCase()] ?: R.drawable.nota
     }
 }
