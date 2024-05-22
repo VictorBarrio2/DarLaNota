@@ -30,7 +30,7 @@
         android:background="@drawable/borde_negro"
         android:ems="10"
         android:hint="Introduce contraseña"
-        android:inputType="text"
+        android:inputType="textPassword"
         android:textAlignment="center"
         android:textColor="#000000"
         android:textColorHint="#000000"

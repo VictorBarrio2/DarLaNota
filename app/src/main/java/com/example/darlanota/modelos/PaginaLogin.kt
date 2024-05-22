@@ -54,16 +54,17 @@ class PaginaLogin : AppCompatActivity() {
 
     private fun cargarCredenciales() {
         val guardarCredenciales = sharedPreferences.getBoolean("guardar_credenciales", false)
-        et_nick.setText(sharedPreferences.getString("nick", ""))
-        et_contra.setText(sharedPreferences.getString("contraseña", ""))
-        cb_inicioAutomatico.isChecked = guardarCredenciales
-
-        if (guardarCredenciales && cb_inicioAutomatico.isChecked) {
+        if (guardarCredenciales) {
+            et_nick.setText(sharedPreferences.getString("nick", ""))
+            et_contra.setText(sharedPreferences.getString("contraseña", ""))
+            cb_inicioAutomatico.isChecked = true
             iniciarSesion(et_nick.text.toString(), et_contra.text.toString())
         }
 
         bto_inicioSesion.setOnClickListener {
-            iniciarSesion(et_nick.text.toString().trim(), et_contra.text.toString().trim())
+            val email = et_nick.text.toString().trim()
+            val password = et_contra.text.toString().trim()
+            iniciarSesion(email, password)
         }
 
         bto_registro.setOnClickListener {
@@ -80,6 +81,17 @@ class PaginaLogin : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    if (cb_inicioAutomatico.isChecked) {
+                        val editor = sharedPreferences.edit()
+                        editor.putBoolean("guardar_credenciales", true)
+                        editor.putString("nick", email)
+                        editor.putString("contraseña", password)
+                        editor.apply()
+                    } else {
+                        val editor = sharedPreferences.edit()
+                        editor.clear()
+                        editor.apply()
+                    }
                     determinarTipoUsuarioYRedirigir(task.result?.user?.uid ?: "")
                 } else {
                     mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
