@@ -3,18 +3,16 @@ package com.example.darlanota.modelos
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Spinner
-import android.widget.TextView
-import android.widget.Toast
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.darlanota.R
+import com.example.darlanota.clases.Actividad
 import com.example.darlanota.clases.FireStore
-import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PaginaCorregirActividad : AppCompatActivity() {
 
@@ -29,17 +27,18 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private val firestore = FireStore()
     private var mapaIdAlumno: MutableMap<String, String> = mutableMapOf()
     private lateinit var idActividad: String
-    private lateinit var id : String
+    private lateinit var id: String
+    private lateinit var id_alumno: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.corregir_actividad_layout)
         id = intent.getStringExtra("ID") ?: ""
-        idActividad = intent.getStringExtra("ACTIVIDAD_ID") ?: ""  // Corrección aquí
+        idActividad = intent.getStringExtra("ACTIVIDAD_ID") ?: ""
         configurarUI()
         txtTitulo.text = intent.getStringExtra("TITULO") ?: ""
 
-        CoroutineScope(Dispatchers.Main).launch {
+        lifecycleScope.launch {
             actualizarListaEstudiantes(idActividad)
         }
     }
@@ -57,83 +56,84 @@ class PaginaCorregirActividad : AppCompatActivity() {
     }
 
     private fun configurarListeners() {
-        imgRanking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingProfe::class.java))
-            intent.putExtra("ID", id)
-        }
-        imgPerfil.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
-                val intent = Intent(this@PaginaCorregirActividad, PaginaPerfilAlumno::class.java)
-                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
-                startActivity(intent)
-            }
-        }
-        imgActividades.setOnClickListener {
-            startActivity(Intent(this, PaginaActividadProfe::class.java))
-            intent.putExtra("ID", id)
-        }
-        btnCorregir.setOnClickListener {
-            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem?.toString()
-            if (nombreAlumnoSeleccionado != null) {
-                val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
-
-                if (idAlumnoActual != null) {
-                    val fragmentoCalificar = FragmentoCalificar.newInstance(idAlumnoActual, idActividad)
-                    fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
-                } else {
-                    Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
+        spinnerAlumnos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                val nombreAlumno = parent.getItemAtPosition(position) as String
+                id_alumno = mapaIdAlumno[nombreAlumno].toString()
+                if (id_alumno != null) {
+                    lifecycleScope.launch {
+                        val calificacion = firestore.obtenerCalificacion(idActividad, id_alumno)
+                        txtCorregido.text = if (calificacion == null || calificacion < 0) {
+                            "Calificado: No"
+                        } else {
+                            "Calificado: Si"
+                        }
+                    }
                 }
-            } else {
-                Toast.makeText(this, "Error: No se ha seleccionado ningún alumno.", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // Nothing to do here
             }
         }
 
         btnDescargar.setOnClickListener {
             val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
-            val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
-            if (idAlumnoActual != null && idActividad.isNotEmpty()) {
+            id_alumno = mapaIdAlumno[nombreAlumnoSeleccionado].toString()
+            if (id_alumno != null && idActividad.isNotEmpty()) {
                 lifecycleScope.launch {
-                    val videoPath = firestore.obtenerRutaVideo(idActividad, idAlumnoActual)
-                    if (videoPath != null) {
-                        try {
-                            firestore.descargarVideo(this@PaginaCorregirActividad, videoPath)
-                            Toast.makeText(this@PaginaCorregirActividad, "Video descargado en la galería", Toast.LENGTH_LONG).show()
-                        } catch (e: Exception) {
-                            Toast.makeText(this@PaginaCorregirActividad, "Error al descargar el video: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                        }
-                    } else {
-                        Log.d("VideoDownload", "No se encontró la ruta del video.")
-                        Toast.makeText(this@PaginaCorregirActividad, "Ruta del video no encontrada", Toast.LENGTH_SHORT).show()
-                    }
+                    descargarVideo(idActividad, id_alumno)
                 }
-            } else {
-                Toast.makeText(this@PaginaCorregirActividad, "Error: No se pudo obtener el ID del alumno o de la actividad.", Toast.LENGTH_SHORT).show()
             }
         }
 
+        btnCorregir.setOnClickListener {
+            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
+            val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
+            if (idAlumnoActual != null) {
+                val fragmentoCalificar = FragmentoCalificar.newInstance(idAlumnoActual, idActividad)
+                fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
+                txtCorregido.text = "Calificado: Si"
+            } else {
+                Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
+    private suspend fun descargarVideo(idActividad: String, idAlumno: String) {
+        val videoPath = withContext(Dispatchers.IO) {
+            firestore.obtenerRutaVideo(idActividad, idAlumno)
+        }
+        if (videoPath != null) {
+            try {
+                firestore.descargarVideo(this, videoPath)
+                Toast.makeText(this, "Video descargado en la galería", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error al descargar el video: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(this, "Ruta del video no encontrada", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     private suspend fun actualizarListaEstudiantes(idActividad: String) {
-        val idsAlumnos = obtenerIdsDeAlumnosPorActividad(idActividad)
-        idsAlumnos.forEach { id ->
-            val nombre = firestore.obtenerNombreUsuario(id)
-            if (nombre != null) {
+        val idsAlumnos = withContext(Dispatchers.IO) {
+            firestore.obtenerIdsDeAlumnosDeEntregasPorActividad(idActividad)
+        }
+        val nombresAlumnos = idsAlumnos.mapNotNull { id ->
+            firestore.obtenerNombreUsuario(id)?.let { nombre ->
                 mapaIdAlumno[nombre] = id
+                nombre
             }
         }
-
-        if (mapaIdAlumno.isNotEmpty()) {
-            val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, mapaIdAlumno.keys.toList())
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerAlumnos.adapter = adapter
-        } else {
-            Log.d("SpinnerData", "La lista de alumnos está vacía.")
+        withContext(Dispatchers.Main) {
+            if (nombresAlumnos.isNotEmpty()) {
+                val adapter = ArrayAdapter(this@PaginaCorregirActividad, android.R.layout.simple_spinner_item, nombresAlumnos)
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinnerAlumnos.adapter = adapter
+            } else {
+                Log.d("SpinnerData", "La lista de alumnos está vacía.")
+            }
         }
-    }
-
-    private suspend fun obtenerIdsDeAlumnosPorActividad(idActividad: String): List<String> = withContext(Dispatchers.IO) {
-        firestore.obtenerIdsDeAlumnosDeEntregasPorActividad(idActividad)
     }
 }

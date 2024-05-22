@@ -2,6 +2,7 @@ package com.example.darlanota.modelos
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -26,6 +27,8 @@ class PaginaRankingProfe : AppCompatActivity() {
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_perfil: ImageView
 
+    private lateinit var bto_cambiarRanking: Button
+
     private lateinit var id : String
 
     private val fireStore = FireStore()
@@ -49,6 +52,8 @@ class PaginaRankingProfe : AppCompatActivity() {
         iv_actividades = findViewById(R.id.iv_actividadesRaPro)
         iv_perfil = findViewById(R.id.iv_perfilRaPro)
 
+        bto_cambiarRanking = findViewById(R.id.bto_cambiarRanking)
+
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadProfe::class.java)
             intent.putExtra("ID", id)
@@ -62,6 +67,11 @@ class PaginaRankingProfe : AppCompatActivity() {
                 intent.putExtra("ID", id)  // Ensure the ID is passed correctly
                 startActivity(intent)
             }
+        }
+
+        bto_cambiarRanking.setOnClickListener{
+            val fragmentoNota = FragmentoNota()
+            fragmentoNota.show(supportFragmentManager, "fragmento_nota")
         }
 
         cargarRanking()

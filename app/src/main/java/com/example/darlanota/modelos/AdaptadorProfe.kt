@@ -9,17 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
-import com.example.darlanota.modelos.PaginaCorregirActividad
 
-class AdaptadorProfe(private val profesorId: String, private val dataList: List<Actividad>) :
+class   AdaptadorProfe(private val profesorId: String, private val dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorProfe.DatosHolder>() {
 
-    private val instrumentDrawableMap = mapOf(
-        "guitarra" to R.drawable.guitarra,
-        "piano" to R.drawable.piano,
-        "batería" to R.drawable.bateria,
-        "canto" to R.drawable.canto
-    )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DatosHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -46,7 +39,4 @@ class AdaptadorProfe(private val profesorId: String, private val dataList: List<
         var textView: TextView = itemView.findViewById(R.id.tv_tituloActividades)
     }
 
-    private fun getDrawableResourceId(instrumento: String): Int {
-        return instrumentDrawableMap[instrumento.toLowerCase()] ?: R.drawable.nota
-    }
 }

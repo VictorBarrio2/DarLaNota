@@ -60,7 +60,7 @@ class FragmentoCalificar : DialogFragment() {
                     // Lanzar una coroutine para llamar a las funciones suspendidas
                     lifecycleScope.launch {
                         if (idAlumno.isNotEmpty() && idActividad.isNotEmpty()) {
-                            firestore.incrementarPuntuacionAlumno(idAlumno, number)
+                            firestore.incrementarPuntuacionUsuario(idAlumno, number)
                             firestore.actualizarCalificacionEntrega(idActividad, idAlumno, number)
                             dismiss() // Cerrar el diálogo después de actualizar la puntuación
                         } else {
@@ -81,6 +81,7 @@ class FragmentoCalificar : DialogFragment() {
         // Create a dialog without a frame
         val dialog = Dialog(requireContext())
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
         return dialog
     }
 }

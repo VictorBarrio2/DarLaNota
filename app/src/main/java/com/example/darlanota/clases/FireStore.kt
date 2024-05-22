@@ -1,22 +1,19 @@
 package com.example.darlanota.clases
 
+import com.example.darlanota.modelos.PaginaCorregirActividad
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import com.example.darlanota.modelos.PaginaCorregirActividad
-import com.google.api.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
 import java.io.File
-import java.util.Calendar
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 class FireStore {
@@ -121,22 +118,54 @@ class FireStore {
         }
     }
 
-    suspend fun incrementarPuntuacionAlumno(idAlumno: String, valorIncremento: Int) = withContext(Dispatchers.IO) {
+    suspend fun incrementarPuntuacionUsuario(idUsuario: String, valorAIncrementar: Int?) {
         try {
-            val alumnoRef = db.collection("usuarios").document(idAlumno)
-            db.runTransaction { transaction ->
-                val snapshot = transaction.get(alumnoRef)
-                val puntuacionActual = snapshot.getLong("puntuacion") ?: 0L  // Obtiene la puntuación actual o 0 si no existe
-                val nuevaPuntuacion = puntuacionActual + valorIncremento
-                transaction.update(alumnoRef, "puntuacion", nuevaPuntuacion)
-                Log.d("Firestore", "Nueva puntuación del alumno $idAlumno es: $nuevaPuntuacion")
+            val referenciaUsuario = db.collection("usuarios").document(idUsuario)
+            db.runTransaction { transaccion ->
+                val instantanea = transaccion.get(referenciaUsuario)
+                val puntuacionActual = instantanea.getLong("puntuacion") ?: 0
+                transaccion.update(referenciaUsuario, "puntuacion", puntuacionActual + valorAIncrementar!!)
             }.await()
         } catch (e: Exception) {
-            registrarIncidencia("Error al incrementar la puntuación: ${e.localizedMessage}")
-            Log.e("Firestore", "Error al incrementar la puntuación: ${e.localizedMessage}", e)
+            throw RuntimeException("Error al incrementar la puntuación: ${e.message}")
         }
     }
 
+    suspend fun decrementarPuntuacionAlumno(idUsuario: String, valorDecremento: Int) {
+        try {
+            val referenciaUsuario = db.collection("usuarios").document(idUsuario)
+            db.runTransaction { transaccion ->
+                val instantanea = transaccion.get(referenciaUsuario)
+                val puntuacionActual = instantanea.getLong("puntuacion") ?: 0
+                val nuevaPuntuacion = (puntuacionActual - valorDecremento).coerceAtLeast(0)  // Evita valores negativos
+                transaccion.update(referenciaUsuario, "puntuacion", nuevaPuntuacion)
+            }.await()
+        } catch (e: Exception) {
+            throw RuntimeException("Error al decrementar la puntuación: ${e.message}")
+        }
+    }
+
+
+    suspend fun obtenerIdPorNombre(nombreAlumno: String): String? {
+        try {
+            // Realizar una consulta a la colección "usuarios"
+            val resultado = db.collection("usuarios")
+                .whereEqualTo("nombre", nombreAlumno)
+                .get()
+                .await()
+
+            // Comprobar si se encontraron documentos
+            if (resultado.documents.isNotEmpty()) {
+                // Devolver el ID del primer documento que coincida con el nombre
+                return resultado.documents.first().id
+            } else {
+                // Devolver null si no se encuentra ningún documento
+                return null
+            }
+        } catch (e: Exception) {
+            throw RuntimeException("Error al obtener la ID por nombre: ${e.message}")
+        }
+    }
 
     suspend fun actualizarCalificacionEntrega(idActividad: String, idAlumno: String, nuevaCalificacion: Int) = withContext(Dispatchers.IO) {
         try {
@@ -286,6 +315,16 @@ class FireStore {
             Log.e("Firestore", "Error al cambiar la contraseña: ${e.localizedMessage}", e)
             "Error al cambiar la contraseña: ${e.localizedMessage}"
         }
+    }
+
+    suspend fun obtenerCalificacion(idActividad: String, idAlumno: String): Int? {
+        val actividad = cargarActividadCompleta(idActividad)
+        return actividad.entregas.find { it.idAlumno == idAlumno }?.calificacion
+    }
+
+    suspend fun cargarActividadCompleta(idActividad: String): Actividad {
+        val doc = db.collection("actividades").document(idActividad).get().await()
+        return doc.toObject(Actividad::class.java) ?: Actividad()
     }
 
 }
