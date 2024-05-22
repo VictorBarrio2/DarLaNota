@@ -8,64 +8,83 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
 import com.google.firebase.auth.FirebaseAuth
+import android.util.Base64
+import java.security.Key
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
+
+private const val ALGORITMO = "AES"
+private const val CLAVE = "claveSegura12345"
 class PaginaRegistro : AppCompatActivity() {
 
-    private lateinit var et_nick : EditText
-    private lateinit var et_contra : EditText
-    private lateinit var et_confirmacionContra : EditText
-    private lateinit var bto_crearCuenta : Button
+    private lateinit var etNick: EditText
+    private lateinit var etContra: EditText
+    private lateinit var etConfirmacionContra: EditText
+    private lateinit var btnCrearCuenta: Button
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.registro_layout)
 
-        // Initialize Firebase Auth
+        // Inicializar Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        et_nick = findViewById(R.id.et_crearNick)
-        et_contra = findViewById(R.id.et_crearContrasena)
-        et_confirmacionContra = findViewById(R.id.et_confirmarContra)
-        bto_crearCuenta = findViewById(R.id.bto_crearCuenta)
+        etNick = findViewById(R.id.et_crearNick)
+        etContra = findViewById(R.id.et_crearContrasena)
+        etConfirmacionContra = findViewById(R.id.et_confirmarContra)
+        btnCrearCuenta = findViewById(R.id.bto_crearCuenta)
 
-        bto_crearCuenta.setOnClickListener {
+        btnCrearCuenta.setOnClickListener {
             registrarUsuario()
         }
     }
 
     private fun registrarUsuario() {
-        val nick = et_nick.text.toString().trim()
-        val contra = et_contra.text.toString().trim()
-        val contraFuerte = et_confirmacionContra.text.toString().trim()
+        val nick = etNick.text.toString().trim()
+        val contra = etContra.text.toString().trim()
+        val contraConfirmada = etConfirmacionContra.text.toString().trim()
 
-        if (nick.isEmpty() || contra.isEmpty() || contraFuerte.isEmpty()) {
+        if (nick.isEmpty() || contra.isEmpty() || contraConfirmada.isEmpty()) {
             Toast.makeText(this, "Campos vacíos", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (contra != contraFuerte) {
+        if (contra != contraConfirmada) {
             Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Creating user account with email and password on Firebase
-        auth.createUserWithEmailAndPassword(nick, contra).addOnCompleteListener(this) { task ->
+        // Cifrar la contraseña antes de pasarla a Firebase
+        val contraCifrada = cifrar(contra)
+
+        // Crear cuenta de usuario con email y contraseña en Firebase
+        auth.createUserWithEmailAndPassword(nick, contraCifrada).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
-                var id = task.result?.user?.uid // Obtiene el ID del usuario de Firebase
+                val id = task.result?.user?.uid // Obtiene el ID del usuario de Firebase
                 Toast.makeText(this, "Registro exitoso.", Toast.LENGTH_SHORT).show()
 
                 val intent = Intent(this, PaginaInstrumentos::class.java)
                 intent.putExtra("ID", id)
                 intent.putExtra("NICK", nick)
-                intent.putExtra("CONTRA", contra)
+                intent.putExtra("CONTRA", contraCifrada)
                 startActivity(intent)
-
-
             } else {
-                // If sign in fails, display a message to the user.
+                // Si falla el registro, mostrar un mensaje al usuario.
                 Toast.makeText(this, "Error de registro: ${task.exception?.localizedMessage}", Toast.LENGTH_LONG).show()
             }
         }
+    }
+    private fun cifrar(dato: String): String {
+        val clave = generarClave()
+        val cifrador = Cipher.getInstance(ALGORITMO)
+        cifrador.init(Cipher.ENCRYPT_MODE, clave)
+        val valorCifrado = cifrador.doFinal(dato.toByteArray())
+        return Base64.encodeToString(valorCifrado, Base64.DEFAULT)
+    }
+
+    private fun generarClave(): Key {
+        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
     }
 }

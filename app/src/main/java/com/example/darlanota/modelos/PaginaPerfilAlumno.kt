@@ -2,6 +2,7 @@ package com.example.darlanota.modelos
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Base64
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -17,7 +18,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.security.Key
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
+
+private const val ALGORITMO = "AES"
+private const val CLAVE = "claveSegura12345"
 class PaginaPerfilAlumno : AppCompatActivity() {
 
     private lateinit var btnInstrumento: Button
@@ -30,6 +37,8 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var tvNombre: TextView
     private lateinit var id: String
     private lateinit var fireStore: FireStore
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +103,8 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private fun cambiarContrasena() {
         CoroutineScope(Dispatchers.Main).launch {
             val nuevaContrasena = etContra.text.toString()
-            if (nuevaContrasena.isBlank()) {
+            val contraCifrada = cifrar(nuevaContrasena)
+            if (contraCifrada.isBlank()) {
                 Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía", Toast.LENGTH_SHORT).show()
                 return@launch
             }
@@ -102,7 +112,7 @@ class PaginaPerfilAlumno : AppCompatActivity() {
             val usuarioActual = FirebaseAuth.getInstance().currentUser
             if (usuarioActual != null) {
                 try {
-                    val resultado = fireStore.cambiarContrasenaUsuario(nuevaContrasena)
+                    val resultado = fireStore.cambiarContrasenaUsuario(contraCifrada)
                     Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
                 } catch (e: Exception) {
                     Toast.makeText(this@PaginaPerfilAlumno, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -152,5 +162,17 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private fun cerrarSesion() {
         finishAffinity()
         startActivity(Intent(this, PaginaLogin::class.java))
+    }
+
+    private fun cifrar(dato: String): String {
+        val clave = generarClave()
+        val cifrador = Cipher.getInstance(ALGORITMO)
+        cifrador.init(Cipher.ENCRYPT_MODE, clave)
+        val valorCifrado = cifrador.doFinal(dato.toByteArray())
+        return Base64.encodeToString(valorCifrado, Base64.DEFAULT)
+    }
+
+    private fun generarClave(): Key {
+        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
     }
 }

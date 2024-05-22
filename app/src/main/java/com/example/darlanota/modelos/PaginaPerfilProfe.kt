@@ -2,6 +2,7 @@ package com.example.darlanota.modelos
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Base64
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -15,6 +16,13 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.security.Key
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
+
+private const val ALGORITMO = "AES"
+private const val CLAVE = "claveSegura12345"
 
 class PaginaPerfilProfe : AppCompatActivity() {
 
@@ -133,4 +141,16 @@ class PaginaPerfilProfe : AppCompatActivity() {
         finishAffinity()
         startActivity(Intent(this, PaginaLogin::class.java))
     }
+    private fun cifrar(dato: String): String {
+        val clave = generarClave()
+        val cifrador = Cipher.getInstance(ALGORITMO)
+        cifrador.init(Cipher.ENCRYPT_MODE, clave)
+        val valorCifrado = cifrador.doFinal(dato.toByteArray())
+        return Base64.encodeToString(valorCifrado, Base64.DEFAULT)
+    }
+
+    private fun generarClave(): Key {
+        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
+    }
+
 }

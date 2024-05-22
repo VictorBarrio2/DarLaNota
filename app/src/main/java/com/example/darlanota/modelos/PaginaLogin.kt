@@ -19,7 +19,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.util.Base64
+import java.security.Key
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
+private const val ALGORITMO = "AES"
+private const val CLAVE = "claveSegura12345"
 class PaginaLogin : AppCompatActivity() {
 
     private lateinit var et_nick: EditText
@@ -61,8 +67,9 @@ class PaginaLogin : AppCompatActivity() {
 
         bto_inicioSesion.setOnClickListener {
             val email = et_nick.text.toString().trim()
-            val password = et_contra.text.toString().trim()
-            iniciarSesion(email, password)
+            val contra = et_contra.text.toString().trim()
+            val contraCifrada = cifrar(contra)
+            iniciarSesion(email, contraCifrada)
         }
 
         bto_registro.setOnClickListener {
@@ -70,20 +77,20 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
-    private fun iniciarSesion(email: String?, password: String?) {
-        if (email.isNullOrEmpty() || password.isNullOrEmpty()) {
+    private fun iniciarSesion(email: String?, contra: String?) {
+        if (email.isNullOrEmpty() || contra.isNullOrEmpty()) {
             Toast.makeText(this, "Por favor, complete todos los campos.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        auth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, contra)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     if (cb_inicioAutomatico.isChecked) {
                         val editor = sharedPreferences.edit()
                         editor.putBoolean("guardar_credenciales", true)
                         editor.putString("nick", email)
-                        editor.putString("contraseña", password)
+                        editor.putString("contraseña", contra)
                         editor.apply()
                     } else {
                         val editor = sharedPreferences.edit()
@@ -138,5 +145,18 @@ class PaginaLogin : AppCompatActivity() {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
+    }
+
+
+    private fun generarClave(): Key {
+        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
+    }
+
+    private fun cifrar(dato: String): String {
+        val clave = generarClave()
+        val cifrador = Cipher.getInstance(ALGORITMO)
+        cifrador.init(Cipher.ENCRYPT_MODE, clave)
+        val valorCifrado = cifrador.doFinal(dato.toByteArray())
+        return Base64.encodeToString(valorCifrado, Base64.DEFAULT)
     }
 }
