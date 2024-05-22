@@ -127,6 +127,7 @@ class FireStore {
                 transaccion.update(referenciaUsuario, "puntuacion", puntuacionActual + valorAIncrementar!!)
             }.await()
         } catch (e: Exception) {
+            registrarIncidencia("Error al incrementar la puntuación: ${e.message}")
             throw RuntimeException("Error al incrementar la puntuación: ${e.message}")
         }
     }
@@ -141,6 +142,7 @@ class FireStore {
                 transaccion.update(referenciaUsuario, "puntuacion", nuevaPuntuacion)
             }.await()
         } catch (e: Exception) {
+            registrarIncidencia("Error al decrementar la puntuación: ${e.message}")
             throw RuntimeException("Error al decrementar la puntuación: ${e.message}")
         }
     }
@@ -163,6 +165,7 @@ class FireStore {
                 return null
             }
         } catch (e: Exception) {
+            registrarIncidencia("Error al obtener la ID por nombre: ${e.message}")
             throw RuntimeException("Error al obtener la ID por nombre: ${e.message}")
         }
     }
@@ -277,6 +280,7 @@ class FireStore {
 
             rankingUsuarios
         } catch (e: Exception) {
+            registrarIncidencia("Error al obtener el ranking de usuarios: ${e.localizedMessage}")
             Log.e("Firestore", "Error al obtener el ranking de usuarios: ${e.localizedMessage}", e)
             emptyList()
         }
@@ -288,6 +292,7 @@ class FireStore {
             val alumnoDoc = db.collection("usuarios").document(idAlumno).get().await()
             alumnoDoc.getString("nombre")
         } catch (e: Exception) {
+            registrarIncidencia("Error al obtener el nombre del alumno: ${e.localizedMessage}")
             Log.e("Firestore", "Error al obtener el nombre del alumno: ${e.localizedMessage}", e)
             null
         }
