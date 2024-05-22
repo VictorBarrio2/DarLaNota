@@ -11,109 +11,124 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.darlanota.R
 import com.example.darlanota.clases.FireStore
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class PaginaPerfilAlumno : AppCompatActivity() {
 
-    private lateinit var bto_instrumento: Button
-    private lateinit var bto_contra: Button
-    private lateinit var iv_ranking: ImageView
-    private lateinit var iv_actividades: ImageView
-    private lateinit var iv_cerrarSesion: ImageView
-    private lateinit var et_contra: EditText
-    private lateinit var tv_nombre: TextView
+    private lateinit var btnInstrumento: Button
+    private lateinit var btnContra: Button
+    private lateinit var ivRanking: ImageView
+    private lateinit var ivActividades: ImageView
+    private lateinit var ivCerrarSesion: ImageView
+    private lateinit var imagenTema: ImageView
+    private lateinit var etContra: EditText
+    private lateinit var tvNombre: TextView
     private lateinit var id: String
-    private lateinit var fireStore : FireStore
+    private lateinit var fireStore: FireStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.perfil_alumno_layout)
 
-        id = intent.getStringExtra("ID") ?: "DefaultID"
-        initializeViews()
-        configureTheme()
-        loadUserData()
+        FirebaseApp.initializeApp(this)
 
-        setupEventHandlers()
+        id = intent.getStringExtra("ID") ?: "DefaultID"
+        inicializarVistas()
+        cargarDatosUsuario()
+        aplicarImagenTema()
+        configurarManejadoresEventos()
     }
 
-    private fun initializeViews() {
-        iv_ranking = findViewById(R.id.iv_rankingPerfil)
-        iv_actividades = findViewById(R.id.iv_actividadesPerfil)
-        bto_contra = findViewById(R.id.bto_cambiarContra)
-        bto_instrumento = findViewById(R.id.bto_cambiarInstrumento)
-        et_contra = findViewById(R.id.et_contraPerfilAlumno)
-        iv_cerrarSesion = findViewById(R.id.iv_salir)
-        tv_nombre = findViewById(R.id.tv_nickPerfil)
+    private fun inicializarVistas() {
+        ivRanking = findViewById(R.id.iv_rankingPerfil)
+        ivActividades = findViewById(R.id.iv_actividadesPerfil)
+        btnContra = findViewById(R.id.bto_cambiarContra)
+        btnInstrumento = findViewById(R.id.bto_cambiarInstrumento)
+        etContra = findViewById(R.id.et_contraPerfilAlumno)
+        ivCerrarSesion = findViewById(R.id.iv_salir)
+        tvNombre = findViewById(R.id.tv_nickPerfil)
+        imagenTema = findViewById(R.id.iv_temaAlumno)
         fireStore = FireStore()
     }
 
-    private fun configureTheme() {
-        // Set the light theme always
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-    }
-
-    private fun loadUserData() {
+    private fun cargarDatosUsuario() {
         val fireStore = FireStore()
         CoroutineScope(Dispatchers.Main).launch {
             val nombre = fireStore.obtenerNombreUsuario(id)
-            tv_nombre.text = nombre ?: "Nombre no disponible"
+            tvNombre.text = nombre ?: "Nombre no disponible"
         }
     }
 
-    private fun setupEventHandlers() {
-        bto_instrumento.setOnClickListener {
+    private fun configurarManejadoresEventos() {
+        btnInstrumento.setOnClickListener {
             startActivity(Intent(this, PaginaInstrumentos::class.java))
         }
 
-        bto_contra.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                val nuevaContrasena = et_contra.text.toString()
-                if (nuevaContrasena.isBlank()) {
-                    Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                val usuarioActual = FirebaseAuth.getInstance().currentUser
-                if (usuarioActual != null) {
-                    try {
-                        val resultado = fireStore.cambiarContrasenaUsuario(nuevaContrasena)
-                        Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(this@PaginaPerfilAlumno, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                    }
-                } else {
-                    Toast.makeText(this@PaginaPerfilAlumno, "No hay usuario autenticado. Por favor, inicie sesión.", Toast.LENGTH_LONG).show()
-                }
-            }
+        btnContra.setOnClickListener {
+            cambiarContrasena()
         }
 
-        iv_actividades.setOnClickListener {
-            Intent(this, PaginaActividadAlumno::class.java).also {
-                it.putExtra("ID", id)
-                startActivity(it)
-            }
+        ivActividades.setOnClickListener {
+            startActivity(Intent(this, PaginaActividadAlumno::class.java).also { it.putExtra("ID", id) })
         }
 
-        iv_ranking.setOnClickListener {
-            Intent(this, PaginaRankingAlumno::class.java).also {
-                it.putExtra("ID", id)
-                startActivity(it)
-            }
+        ivRanking.setOnClickListener {
+            startActivity(Intent(this, PaginaRankingAlumno::class.java).also { it.putExtra("ID", id) })
         }
 
+        ivCerrarSesion.setOnClickListener {
+            limpiarPreferenciasLogin()
+            cerrarSesion()
+        }
 
-
-        iv_cerrarSesion.setOnClickListener {
-            clearLoginPreferences()
-            logout()
+        imagenTema.setOnClickListener {
+            cambiarTema()
         }
     }
 
-    private fun clearLoginPreferences() {
+    private fun cambiarContrasena() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val nuevaContrasena = etContra.text.toString()
+            if (nuevaContrasena.isBlank()) {
+                Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            val usuarioActual = FirebaseAuth.getInstance().currentUser
+            if (usuarioActual != null) {
+                try {
+                    val resultado = fireStore.cambiarContrasenaUsuario(nuevaContrasena)
+                    Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Toast.makeText(this@PaginaPerfilAlumno, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(this@PaginaPerfilAlumno, "No hay usuario autenticado. Por favor, inicie sesión.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun cambiarTema() {
+        val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
+        val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
+        if (esTemaOscuro) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            imagenTema.setImageResource(R.drawable.sol) // Imagen de sol cuando el tema es claro
+            prefs.edit().putBoolean("tema_oscuro", false).apply()
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            imagenTema.setImageResource(R.drawable.luna) // Imagen de luna cuando el tema es oscuro
+            prefs.edit().putBoolean("tema_oscuro", true).apply()
+        }
+    }
+
+
+    private fun limpiarPreferenciasLogin() {
         val sharedPreferences = getSharedPreferences("login_preferences", MODE_PRIVATE)
         with(sharedPreferences.edit()) {
             remove("nick")
@@ -123,7 +138,18 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         }
     }
 
-    private fun logout() {
+    private fun aplicarImagenTema() {
+        val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
+        val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
+        if (esTemaOscuro) {
+            imagenTema.setImageResource(R.drawable.luna)
+        } else {
+            imagenTema.setImageResource(R.drawable.sol)
+        }
+    }
+
+
+    private fun cerrarSesion() {
         finishAffinity()
         startActivity(Intent(this, PaginaLogin::class.java))
     }

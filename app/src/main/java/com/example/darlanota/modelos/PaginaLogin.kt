@@ -33,6 +33,7 @@ class PaginaLogin : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        aplicarTemaGuardado()
         setContentView(R.layout.login_layout)
         FirebaseApp.initializeApp(this)
 
@@ -45,9 +46,6 @@ class PaginaLogin : AppCompatActivity() {
         cb_inicioAutomatico = findViewById(R.id.cb_guardarSesion)
 
         sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
-
-        // Configura el tema claro de manera obligatoria
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         cargarCredenciales()
     }
@@ -129,6 +127,16 @@ class PaginaLogin : AppCompatActivity() {
             setPositiveButton("Aceptar", null)
             create()
             show()
+        }
+    }
+
+    private fun aplicarTemaGuardado() {
+        val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
+        val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
+        if (esTemaOscuro) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
     }
 }

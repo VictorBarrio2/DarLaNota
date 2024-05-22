@@ -22,6 +22,7 @@ class PaginaPerfilProfe : AppCompatActivity() {
     private lateinit var imagenClasificacion: ImageView
     private lateinit var imagenActividades: ImageView
     private lateinit var imagenCerrarSesion: ImageView
+    private lateinit var imagenTema: ImageView
     private lateinit var campoContrasena: EditText
     private lateinit var textoNombre: TextView
     private lateinit var id: String
@@ -39,6 +40,7 @@ class PaginaPerfilProfe : AppCompatActivity() {
 
         cargarDatosUsuario()
         configurarListeners()
+        aplicarImagenTema()
     }
 
     private fun inicializarVistas() {
@@ -48,6 +50,7 @@ class PaginaPerfilProfe : AppCompatActivity() {
         campoContrasena = findViewById(R.id.et_contraPerfilProfe)
         imagenCerrarSesion = findViewById(R.id.iv_salirProfe)
         textoNombre = findViewById(R.id.tv_nickPerfilProfe)
+        imagenTema = findViewById(R.id.iv_tema)
     }
 
     private fun cargarDatosUsuario() {
@@ -96,6 +99,34 @@ class PaginaPerfilProfe : AppCompatActivity() {
 
         imagenCerrarSesion.setOnClickListener {
             cerrarSesion()
+        }
+
+        imagenTema.setOnClickListener {
+            cambiarTema()
+        }
+    }
+
+    private fun cambiarTema() {
+        val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
+        val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
+        if (esTemaOscuro) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            imagenTema.setImageResource(R.drawable.sol)
+            prefs.edit().putBoolean("tema_oscuro", false).apply()
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            imagenTema.setImageResource(R.drawable.luna)
+            prefs.edit().putBoolean("tema_oscuro", true).apply()
+        }
+    }
+
+    private fun aplicarImagenTema() {
+        val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
+        val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
+        if (esTemaOscuro) {
+            imagenTema.setImageResource(R.drawable.luna)
+        } else {
+            imagenTema.setImageResource(R.drawable.sol)
         }
     }
 
