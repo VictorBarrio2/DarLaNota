@@ -98,6 +98,18 @@ class PaginaCorregirActividad : AppCompatActivity() {
                 Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
             }
         }
+
+        imgActividades.setOnClickListener {
+            startActivity(Intent(this, PaginaActividadProfe::class.java).also { it.putExtra("ID", id) })
+        }
+
+        imgPerfil.setOnClickListener{
+            startActivity(Intent(this, PaginaPerfilProfe::class.java).also { it.putExtra("ID", id) })
+        }
+
+        imgRanking.setOnClickListener {
+            startActivity(Intent(this, PaginaRankingProfe::class.java).also { it.putExtra("ID", id) })
+        }
     }
 
     private suspend fun descargarVideo(idActividad: String, idAlumno: String) {

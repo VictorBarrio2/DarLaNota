@@ -30,9 +30,6 @@ class PaginaPerfilProfe : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Establecer siempre el tema claro
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
         setContentView(R.layout.perfil_profe_layout)
 
         inicializarVistas()
