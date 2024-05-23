@@ -14,27 +14,25 @@ import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
 import com.example.darlanota.clases.FireStore
 import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.util.Calendar
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import java.util.Calendar
 
 class PaginaAltaActividad : AppCompatActivity() {
-    private lateinit var bto_subirActividad: Button
-    private lateinit var bto_fecha: Button
-    private lateinit var tv_fecha: TextView
-    private lateinit var et_titulo: EditText
-    private lateinit var et_des: EditText
-    private var fechaSeleccionada: Calendar? = null  // Cambiado a nullable para asegurar selección explícita
-    private lateinit var iv_perfil: ImageView
-    private lateinit var iv_ranking: ImageView
-    private lateinit var iv_actividad: ImageView
-    private lateinit var id : String
 
+    // Declaración de variables
+    private lateinit var btoSubirActividad: Button
+    private lateinit var btoFecha: Button
+    private lateinit var tvFecha: TextView
+    private lateinit var etTitulo: EditText
+    private lateinit var etDescripcion: EditText
+    private var fechaSeleccionada: Calendar? = null  // Cambiado a nullable para asegurar selección explícita
+    private lateinit var ivPerfil: ImageView
+    private lateinit var ivRanking: ImageView
+    private lateinit var ivActividad: ImageView
+    private lateinit var id: String
+
+    // Método onCreate, inicializa la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.alta_actividad_layout)
@@ -42,30 +40,39 @@ class PaginaAltaActividad : AppCompatActivity() {
 
         id = intent.getStringExtra("ID") ?: ""
 
-        bto_subirActividad = findViewById(R.id.bto_subirActividad)
-        tv_fecha = findViewById(R.id.tv_fecha)
-        bto_fecha = findViewById(R.id.bto_fecha)
-        et_titulo = findViewById(R.id.et_tituloAlta)
-        et_des = findViewById(R.id.et_descripcionAlta)
+        inicializarVistas()
+        configurarListeners()
+    }
 
-        bto_subirActividad.setOnClickListener {
+    // Inicializa las vistas
+    private fun inicializarVistas() {
+        btoSubirActividad = findViewById(R.id.bto_subirActividad)
+        tvFecha = findViewById(R.id.tv_fecha)
+        btoFecha = findViewById(R.id.bto_fecha)
+        etTitulo = findViewById(R.id.et_tituloAlta)
+        etDescripcion = findViewById(R.id.et_descripcionAlta)
+        ivPerfil = findViewById(R.id.iv_perfilAltaAc)
+        ivRanking = findViewById(R.id.iv_rankingAltaAc)
+        ivActividad = findViewById(R.id.iv_actividadesAltaAc)
+    }
+
+    // Configura los listeners para los botones y las imágenes
+    private fun configurarListeners() {
+        btoSubirActividad.setOnClickListener {
             subirActividad()
         }
 
-        bto_fecha.setOnClickListener {
+        btoFecha.setOnClickListener {
             mostrarDatePicker()
         }
-
-        iv_perfil = findViewById(R.id.iv_perfilAltaAc)
-        iv_ranking = findViewById(R.id.iv_rankingAltaAc)
-        iv_actividad = findViewById(R.id.iv_actividadesAltaAc)
 
         setImageViewListeners()
     }
 
+    // Método para subir la actividad a Firestore
     private fun subirActividad() {
-        val titulo = et_titulo.text.toString().trim()
-        val descripcion = et_des.text.toString().trim()
+        val titulo = etTitulo.text.toString().trim()
+        val descripcion = etDescripcion.text.toString().trim()
         val fechaFin = fechaSeleccionada?.let { Timestamp(it.time) }
 
         if (titulo.isEmpty() || descripcion.isEmpty() || fechaFin == null) {
@@ -91,33 +98,36 @@ class PaginaAltaActividad : AppCompatActivity() {
         }
     }
 
+    // Muestra el DatePicker para seleccionar la fecha
     private fun mostrarDatePicker() {
         val calendar = Calendar.getInstance()
         DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
             fechaSeleccionada = Calendar.getInstance().apply {
                 set(year, monthOfYear, dayOfMonth)
             }
-            tv_fecha.text = String.format("%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
+            tvFecha.text = String.format("%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
+    // Configura los listeners para las imágenes
     private fun setImageViewListeners() {
-        iv_perfil.setOnClickListener {
+        ivPerfil.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaAltaActividad, PaginaPerfilAlumno::class.java)
-                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                intent.putExtra("ID", id)  // Asegura que el ID se pase correctamente
                 startActivity(intent)
             }
         }
-        iv_ranking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingProfe::class.java))
-            intent.putExtra("ID", id)
+        ivRanking.setOnClickListener {
+            startActivity(Intent(this, PaginaRankingProfe::class.java).apply {
+                putExtra("ID", id)
+            })
         }
-        iv_actividad.setOnClickListener {
-            startActivity(Intent(this, PaginaActividadProfe::class.java))
-            intent.putExtra("ID", id)
+        ivActividad.setOnClickListener {
+            startActivity(Intent(this, PaginaActividadProfe::class.java).apply {
+                putExtra("ID", id)
+            })
         }
     }
 }
-

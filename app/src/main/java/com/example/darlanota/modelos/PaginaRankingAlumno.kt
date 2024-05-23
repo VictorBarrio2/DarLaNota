@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 
 class PaginaRankingAlumno : AppCompatActivity() {
 
+    // Variables para las vistas de la interfaz
     private lateinit var et_1: TextView
     private lateinit var et_2: TextView
     private lateinit var et_3: TextView
@@ -35,7 +36,21 @@ class PaginaRankingAlumno : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ranking_alumno_layout)
 
+        // Inicializar vistas
+        inicializarVistas()
+
+        // Obtener el ID del intent
         id = intent.getStringExtra("ID").toString()
+
+        // Configurar listeners de los botones
+        configurarListeners()
+
+        // Cargar el ranking de usuarios
+        cargarRanking()
+    }
+
+    // Método para inicializar las vistas
+    private fun inicializarVistas() {
         et_1 = findViewById(R.id.tv_primeraPosAl)
         et_2 = findViewById(R.id.tv_segundaPosAl)
         et_3 = findViewById(R.id.tv_terceraPosAl)
@@ -52,7 +67,10 @@ class PaginaRankingAlumno : AppCompatActivity() {
         iv_ranking = findViewById(R.id.iv_rankingRaAl)
         iv_actividades = findViewById(R.id.iv_actividadesRaAl)
         iv_perfil = findViewById(R.id.iv_perfilRaAl)
+    }
 
+    // Método para configurar los listeners de los botones
+    private fun configurarListeners() {
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadAlumno::class.java)
             intent.putExtra("ID", id)
@@ -63,14 +81,13 @@ class PaginaRankingAlumno : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaRankingAlumno, PaginaPerfilAlumno::class.java)
-                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                intent.putExtra("ID", id)
                 startActivity(intent)
             }
         }
-
-        cargarRanking()
     }
 
+    // Método para cargar el ranking de usuarios
     private fun cargarRanking() {
         CoroutineScope(Dispatchers.Main).launch {
             val ranking = withContext(Dispatchers.IO) { fireStore.obtenerRankingUsuarios() }
@@ -78,11 +95,13 @@ class PaginaRankingAlumno : AppCompatActivity() {
             val posicion = ranking.indexOfFirst { it.first == nombreUsuario }
             val puntuacion = ranking.find { it.first == nombreUsuario }?.second
 
+            // Actualizar el ranking y la posición/puntuación del usuario
             actualizarRanking(ranking)
             actualizarPosicionYPuntuacion(posicion, puntuacion)
         }
     }
 
+    // Método para actualizar las vistas con el ranking de usuarios
     private fun actualizarRanking(ranking: List<Pair<String, Long>>) {
         val rankingViews = listOf(et_1, et_2, et_3, et_4, et_5, et_6, et_7, et_8, et_9, et_10)
 
@@ -96,8 +115,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
         }
     }
 
-
-
+    // Método para actualizar la posición y puntuación del usuario en las vistas
     private fun actualizarPosicionYPuntuacion(posicion: Int, puntuacion: Long?) {
         if (posicion != -1 && puntuacion != null) {
             et_posicion.text = "Posición: ${posicion + 1}"

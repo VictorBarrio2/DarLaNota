@@ -14,27 +14,34 @@ import com.example.darlanota.clases.FireStore
 import kotlinx.coroutines.*
 
 class FragmentoNota : DialogFragment() {
+
     private lateinit var etNick: EditText
     private lateinit var etNota: EditText
     private lateinit var btoSumar: Button
     private lateinit var btoRestar: Button
     private val firestore = FireStore()
 
+    // Método para inflar el layout del fragmento
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragmento_ranking_layout, container, false)
     }
 
+    // Método para configurar las vistas y los listeners
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        inicializarVistas(view)
+        configurarListenersDeBotones()
+    }
 
+    // Método para inicializar las vistas
+    private fun inicializarVistas(view: View) {
         etNick = view.findViewById(R.id.et_nombreAlumnoRa)
         etNota = view.findViewById(R.id.et_notaAlumnoRa)
         btoSumar = view.findViewById(R.id.bto_sumar)
         btoRestar = view.findViewById(R.id.bto_restar)
-
-        configurarListenersDeBotones()
     }
 
+    // Método para configurar los listeners de los botones
     private fun configurarListenersDeBotones() {
         btoSumar.setOnClickListener {
             gestionarCambioDePuntuacion(esIncremento = true)
@@ -45,6 +52,7 @@ class FragmentoNota : DialogFragment() {
         }
     }
 
+    // Método para gestionar el cambio de puntuación (incrementar o decrementar)
     private fun gestionarCambioDePuntuacion(esIncremento: Boolean) {
         val nombre = etNick.text.toString()
         val nota = etNota.text.toString().toIntOrNull()
@@ -66,22 +74,28 @@ class FragmentoNota : DialogFragment() {
                         mensaje = "Restado $nota puntos a $nombre."
                     }
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
+                        mostrarMensaje(mensaje)
                         dismiss() // Cerrar el diálogo
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        etNota.error = "Usuario no encontrado."
+                        etNick.error = "Usuario no encontrado."
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error en la operación de puntuación: ${e.message}", Toast.LENGTH_LONG).show()
+                    mostrarMensaje("Error en la operación de puntuación: ${e.message}")
                 }
             }
         }
     }
 
+    // Método para mostrar un mensaje Toast
+    private fun mostrarMensaje(mensaje: String) {
+        Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
+    }
+
+    // Método para crear un diálogo sin marco
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = Dialog(requireContext())
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)

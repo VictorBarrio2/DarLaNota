@@ -27,11 +27,26 @@ class PaginaActividadAlumno : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.actividades_alumno_layout)
 
+        // Inicializa las vistas
+        inicializarVistas()
+
+        // Configura los listeners para las vistas
+        configurarListeners()
+
+        // Carga las actividades del alumno
+        cargarActividades()
+    }
+
+    // Método para inicializar las vistas
+    private fun inicializarVistas() {
         iv_ranking = findViewById(R.id.iv_rankingAcAl)
         iv_actividades = findViewById(R.id.iv_actividadesAcAl)
         iv_perfil = findViewById(R.id.iv_perfilAcAl)
         reciclador = findViewById(R.id.rv_reciclador)
+    }
 
+    // Método para configurar los listeners
+    private fun configurarListeners() {
         val id = intent.getStringExtra("ID")
 
         iv_ranking.setOnClickListener {
@@ -44,36 +59,51 @@ class PaginaActividadAlumno : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaActividadAlumno, PaginaPerfilAlumno::class.java)
-                intent.putExtra("ID", id)  // Ensure the ID is passed correctly
+                intent.putExtra("ID", id)  // Asegura que el ID se pase correctamente
                 startActivity(intent)
             }
         }
+    }
+
+    // Método para cargar las actividades del alumno
+    private fun cargarActividades() {
+        val id = intent.getStringExtra("ID")
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
 
-                // Filtrar actividades pasadas y eliminarlas
-                val actividadesValidas = actividadesList.filter { actividad ->
-                    val fechaFin = actividad.fechafin?.toDate()
-                    if (fechaFin != null && fechaFin.before(Date())) {
-                        withContext(Dispatchers.IO) {
-                            fireStore.eliminarActividad(actividad.id)
-                        }
-                        false
-                    } else {
-                        true
-                    }
-                }
+                // Filtra actividades pasadas y las elimina
+                val actividadesValidas = filtrarYEliminarActividadesPasadas(actividadesList)
 
-                adaptadorAlumno = AdaptadorAlumno(id.toString(), actividadesValidas)
-                reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadAlumno)
-                reciclador.adapter = adaptadorAlumno
+                // Configura el adaptador con las actividades válidas
+                configurarAdaptador(actividadesValidas, id.toString())
             } catch (e: Exception) {
                 Toast.makeText(this@PaginaActividadAlumno, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                val firestore = FireStore()
-                firestore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
+                fireStore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
             }
         }
+    }
+
+    // Método para filtrar y eliminar actividades pasadas
+    private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>): List<Actividad> {
+        return actividadesList.filter { actividad ->
+            val fechaFin = actividad.fechafin?.toDate()
+            if (fechaFin != null && fechaFin.before(Date())) {
+                withContext(Dispatchers.IO) {
+                    fireStore.eliminarActividad(actividad.id)
+                }
+                false
+            } else {
+                true
+            }
+        }
+    }
+
+    // Método para configurar el adaptador del RecyclerView
+    private fun configurarAdaptador(actividadesValidas: List<Actividad>, id: String) {
+        adaptadorAlumno = AdaptadorAlumno(id, actividadesValidas)
+        reciclador.layoutManager = LinearLayoutManager(this@PaginaActividadAlumno)
+        reciclador.adapter = adaptadorAlumno
     }
 }

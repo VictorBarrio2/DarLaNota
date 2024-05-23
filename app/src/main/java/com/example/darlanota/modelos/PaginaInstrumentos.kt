@@ -11,57 +11,79 @@ import com.example.darlanota.clases.Alumno
 
 class PaginaInstrumentos : AppCompatActivity() {
 
-    private lateinit var bto_siguiente : Button
+    // Declaración de variables UI
+    private lateinit var btoSiguiente: Button
+    private lateinit var cbPiano: CheckBox
+    private lateinit var cbBateria: CheckBox
+    private lateinit var cbGuitarra: CheckBox
+    private lateinit var cbCanto: CheckBox
 
-    private lateinit var cb_piano : CheckBox
-    private lateinit var cb_bateria : CheckBox
-    private lateinit var cb_guitarra : CheckBox
-    private lateinit var cb_canto : CheckBox
-
-
+    // Método principal que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.instrumentos_layout)
 
+        // Obtener los datos pasados por intent
         val id = intent.getStringExtra("ID")
         val nick = intent.getStringExtra("NICK")
         val contra = intent.getStringExtra("CONTRA")
 
-        cb_piano = findViewById(R.id.cb_piano)
-        cb_bateria = findViewById(R.id.cb_bateria)
-        cb_guitarra = findViewById(R.id.cb_guitarra)
-        cb_canto = findViewById(R.id.cb_canto)
+        // Inicializar las vistas
+        inicializarVistas()
 
-        bto_siguiente = findViewById(R.id.bto_elegirInstrumento)
+        // Configurar el listener para el botón
+        configurarListenerBoton(id, nick, contra)
+    }
 
-        bto_siguiente.setOnClickListener {
-            if (!cb_piano.isChecked && !cb_bateria.isChecked && !cb_guitarra.isChecked && !cb_canto.isChecked) {
+    // Método para inicializar las vistas
+    private fun inicializarVistas() {
+        cbPiano = findViewById(R.id.cb_piano)
+        cbBateria = findViewById(R.id.cb_bateria)
+        cbGuitarra = findViewById(R.id.cb_guitarra)
+        cbCanto = findViewById(R.id.cb_canto)
+        btoSiguiente = findViewById(R.id.bto_elegirInstrumento)
+    }
+
+    // Método para configurar el listener del botón
+    private fun configurarListenerBoton(id: String?, nick: String?, contra: String?) {
+        btoSiguiente.setOnClickListener {
+            if (!cbPiano.isChecked && !cbBateria.isChecked && !cbGuitarra.isChecked && !cbCanto.isChecked) {
                 Toast.makeText(this, "Debes seleccionar al menos un instrumento", Toast.LENGTH_SHORT).show()
             } else {
-                val instrumentos = ArrayList<String>()
-
-                if (cb_piano.isChecked) instrumentos.add("Piano")
-                if (cb_bateria.isChecked) instrumentos.add("Batería")
-                if (cb_guitarra.isChecked) instrumentos.add("Guitarra")
-                if (cb_canto.isChecked) instrumentos.add("Canto")
-
-// Assuming 'contra' and 'nick' are correctly defined as String types before this snippet
+                val instrumentos = obtenerInstrumentosSeleccionados()
                 val alumno = Alumno(contra.toString(), nick.toString(), "alumno", instrumentos, 0)
 
                 alumno.subirAlumnoFirestore(id.toString())
 
-                finishAffinity()
-                val intent = Intent(this, PaginaActividadAlumno::class.java)
-                intent.putExtra("ID", id)
-                startActivity(intent)
-                finish()
+                // Iniciar la actividad PaginaActividadAlumno
+                iniciarActividadAlumno(id)
             }
         }
-
-
     }
 
-    private fun setup(email:String, provider:String){
+    // Método para obtener los instrumentos seleccionados
+    private fun obtenerInstrumentosSeleccionados(): ArrayList<String> {
+        val instrumentos = ArrayList<String>()
+
+        if (cbPiano.isChecked) instrumentos.add("Piano")
+        if (cbBateria.isChecked) instrumentos.add("Batería")
+        if (cbGuitarra.isChecked) instrumentos.add("Guitarra")
+        if (cbCanto.isChecked) instrumentos.add("Canto")
+
+        return instrumentos
+    }
+
+    // Método para iniciar la actividad PaginaActividadAlumno
+    private fun iniciarActividadAlumno(id: String?) {
+        finishAffinity()
+        val intent = Intent(this, PaginaActividadAlumno::class.java)
+        intent.putExtra("ID", id)
+        startActivity(intent)
+        finish()
+    }
+
+    // Método no utilizado actualmente
+    private fun setup(email: String, provider: String) {
         title = "Inicio"
     }
 }

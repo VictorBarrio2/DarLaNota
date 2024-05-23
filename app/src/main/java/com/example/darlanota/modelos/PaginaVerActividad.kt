@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 
 class PaginaVerActividad : AppCompatActivity() {
 
+    // Declaración de elementos de la interfaz
     private lateinit var botonSubirVideo: Button
     private lateinit var textoDescripcion: TextView
     private lateinit var textoTitulo: TextView
@@ -35,19 +36,21 @@ class PaginaVerActividad : AppCompatActivity() {
     private var entregado: Boolean = false
 
     companion object {
-        private const val CODIGO_SELECCION_VIDEO = 1000
+        private const val CODIGO_SELECCION_VIDEO = 1000 // Código para la selección de video
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.ver_actividades_layout)
+        setContentView(R.layout.ver_actividades_layout) // Configurar el layout de la actividad
 
-        inicializarVistas()
-        configurarNavegacion()
-        verificarEntregaYCalificacion()
+        inicializarVistas() // Inicializar los elementos de la interfaz
+        configurarNavegacion() // Configurar la navegación entre actividades
+        verificarEntregaYCalificacion() // Verificar si la actividad ya fue entregada y calificada
     }
 
+    // Inicializa las vistas del layout
     private fun inicializarVistas() {
+        // Vincular los elementos del layout con las variables
         textoTitulo = findViewById(R.id.tv_tituloActVer)
         textoDescripcion = findViewById(R.id.tv_descripcionVer)
         textoCalificacion = findViewById(R.id.tv_calificacion)
@@ -58,30 +61,35 @@ class PaginaVerActividad : AppCompatActivity() {
         iconoRanking = findViewById(R.id.iv_rankingVer)
         botonSubirVideo = findViewById(R.id.bto_subirVideo)
 
+        // Obtener los datos pasados desde la actividad anterior
         id = intent.getStringExtra("ID").orEmpty()
         id_actividad = intent.getStringExtra("ACTIVIDAD_ID").orEmpty()
         textoTitulo.text = intent.getStringExtra("TITULO")
         textoDescripcion.text = intent.getStringExtra("DESCRIPCION")
         fechaCierre.text = "Fecha cierre: " + intent.getStringExtra("FECHA")
 
-
+        // Configurar el botón para subir video
         botonSubirVideo.setOnClickListener {
             seleccionarVideo()
         }
     }
 
+    // Configura los iconos para navegar a otras actividades
     private fun configurarNavegacion() {
+        // Configurar listeners para los iconos de navegación
         iconoActividades.setOnClickListener { navegarA(PaginaActividadAlumno::class.java) }
         iconoRanking.setOnClickListener { navegarA(PaginaRankingAlumno::class.java) }
         iconoPerfil.setOnClickListener { navegarA(PaginaPerfilAlumno::class.java) }
     }
 
+    // Método para navegar a otra actividad pasando el ID del usuario
     private fun navegarA(destino: Class<*>) {
         val intent = Intent(this, destino)
         intent.putExtra("ID", id)
         startActivity(intent)
     }
 
+    // Método para seleccionar un video de la galería
     private fun seleccionarVideo() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -90,15 +98,18 @@ class PaginaVerActividad : AppCompatActivity() {
         startActivityForResult(intent, CODIGO_SELECCION_VIDEO)
     }
 
+    // Verifica si la actividad ya ha sido entregada y calificada
     private fun verificarEntregaYCalificacion() {
         val firestoreService = FireStore()
         CoroutineScope(Dispatchers.Main).launch {
             try {
+                // Obtener la referencia a la actividad en Firestore
                 val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
                 val actividadSnapshot = actividadRef.get().await()
                 val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
                 val entregaMap = entregas.find { it["idAlumno"] == id }
 
+                // Verificar si ya existe una entrega
                 if (entregaMap != null) {
                     val entrega = Entrega(
                         idAlumno = entregaMap["idAlumno"] as String,
@@ -107,9 +118,9 @@ class PaginaVerActividad : AppCompatActivity() {
                     )
                     entregado = true
                     textoEntregado.text = "Entregado: Sí"
-                    if(entrega.calificacion >= 0){
+                    if (entrega.calificacion >= 0) {
                         textoCalificacion.text = "Calificación: ${entrega.calificacion}"
-                    }else{
+                    } else {
                         textoCalificacion.text = "Calificación: No calificado"
                     }
 
@@ -117,6 +128,7 @@ class PaginaVerActividad : AppCompatActivity() {
                     textoEntregado.text = "Entregado: No"
                 }
             } catch (e: Exception) {
+                // Registrar la incidencia en Firestore en caso de error
                 val firestore = FireStore()
                 firestore.registrarIncidencia("Error al verificar la entrega: ${e.localizedMessage}")
                 Log.e("FireStore", "Error al verificar la entrega: ${e.localizedMessage}", e)
@@ -124,6 +136,7 @@ class PaginaVerActividad : AppCompatActivity() {
         }
     }
 
+    // Maneja el resultado de la selección de video
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == CODIGO_SELECCION_VIDEO && resultCode == RESULT_OK && data != null) {
@@ -137,26 +150,31 @@ class PaginaVerActividad : AppCompatActivity() {
         }
     }
 
+    // Actualiza un video ya entregado en Firestore
     private fun actualizarVideoEnFirestore(uriVideo: Uri) {
         val nuevoVideoPath = "videos/${uriVideo.lastPathSegment}"
         val firestoreService = FireStore()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // Obtener referencia y datos de la actividad en Firestore
                 val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
                 val actividadSnapshot = actividadRef.get().await()
                 val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
                 val entrega = entregas.find { it["idAlumno"] == id }
                 val videoAntiguoPath = entrega?.get("video") as? String
 
+                // Eliminar video antiguo si existe
                 if (!videoAntiguoPath.isNullOrEmpty()) {
                     val storageRef = FirebaseStorage.getInstance().getReference(videoAntiguoPath)
                     storageRef.delete().await()
                 }
 
+                // Subir el nuevo video a Firebase Storage
                 val storageRefNuevo = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
                 storageRefNuevo.putFile(uriVideo).await()
 
+                // Actualizar la entrega en Firestore
                 firestoreService.actualizarVideoEntrega(id_actividad, id, nuevoVideoPath)
 
                 withContext(Dispatchers.Main) {
@@ -171,10 +189,12 @@ class PaginaVerActividad : AppCompatActivity() {
         }
     }
 
+    // Sube un nuevo video a Firebase
     private fun subirVideoAFirebase(uriVideo: Uri) {
         val videoPath = "videos/${uriVideo.lastPathSegment}"
         val storageRef = FirebaseStorage.getInstance().reference.child(videoPath)
 
+        // Subir video a Firebase Storage y actualizar Firestore
         storageRef.putFile(uriVideo).addOnSuccessListener {
             val nuevaEntrega = Entrega(idAlumno = id, video = videoPath, calificacion = -1)
             nuevaEntrega.subirEntregaFirestore(id_actividad)

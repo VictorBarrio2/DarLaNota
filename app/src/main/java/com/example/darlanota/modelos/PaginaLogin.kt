@@ -26,56 +26,73 @@ import javax.crypto.spec.SecretKeySpec
 
 private const val ALGORITMO = "AES"
 private const val CLAVE = "claveSegura12345"
+
 class PaginaLogin : AppCompatActivity() {
 
-    private lateinit var et_nick: EditText
-    private lateinit var et_contra: EditText
-    private lateinit var bto_inicioSesion: Button
-    private lateinit var bto_registro: Button
-    private lateinit var cb_inicioAutomatico: CheckBox
+    // Declaración de variables UI y Firebase
+    private lateinit var etNick: EditText
+    private lateinit var etContra: EditText
+    private lateinit var btoInicioSesion: Button
+    private lateinit var btoRegistro: Button
+    private lateinit var cbInicioAutomatico: CheckBox
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var sharedPreferences: SharedPreferences
 
+    // Método principal que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         aplicarTemaGuardado()
         setContentView(R.layout.login_layout)
         FirebaseApp.initializeApp(this)
 
+        // Inicialización de Firebase Auth y Firestore
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-        et_nick = findViewById(R.id.et_nick)
-        et_contra = findViewById(R.id.et_contra)
-        bto_inicioSesion = findViewById(R.id.bto_iniciarSesion)
-        bto_registro = findViewById(R.id.bto_registro)
-        cb_inicioAutomatico = findViewById(R.id.cb_guardarSesion)
 
-        sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
+        // Inicializar las vistas
+        inicializarVistas()
 
+        // Cargar credenciales si están guardadas
         cargarCredenciales()
     }
 
+    // Método para inicializar las vistas
+    private fun inicializarVistas() {
+        etNick = findViewById(R.id.et_nick)
+        etContra = findViewById(R.id.et_contra)
+        btoInicioSesion = findViewById(R.id.bto_iniciarSesion)
+        btoRegistro = findViewById(R.id.bto_registro)
+        cbInicioAutomatico = findViewById(R.id.cb_guardarSesion)
+
+        // Inicializar sharedPreferences
+        sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
+    }
+
+    // Método para cargar credenciales guardadas
     private fun cargarCredenciales() {
         val guardarCredenciales = sharedPreferences.getBoolean("guardar_credenciales", false)
         if (guardarCredenciales) {
-            et_nick.setText(sharedPreferences.getString("nick", ""))
-            et_contra.setText(sharedPreferences.getString("contraseña", ""))
-            cb_inicioAutomatico.isChecked = true
-            iniciarSesion(et_nick.text.toString(), et_contra.text.toString())
+            etNick.setText(sharedPreferences.getString("nick", ""))
+            etContra.setText(sharedPreferences.getString("contraseña", ""))
+            cbInicioAutomatico.isChecked = true
+            iniciarSesion(etNick.text.toString(), etContra.text.toString())
         }
 
-        bto_inicioSesion.setOnClickListener {
-            val email = et_nick.text.toString().trim()
-            val contra = et_contra.text.toString().trim()
+        // Configurar el listener para el botón de inicio de sesión
+        btoInicioSesion.setOnClickListener {
+            val email = etNick.text.toString().trim()
+            val contra = etContra.text.toString().trim()
             iniciarSesion(email, contra)
         }
 
-        bto_registro.setOnClickListener {
+        // Configurar el listener para el botón de registro
+        btoRegistro.setOnClickListener {
             startActivity(Intent(this, PaginaRegistro::class.java))
         }
     }
 
+    // Método para iniciar sesión
     private fun iniciarSesion(email: String?, contra: String?) {
         if (email.isNullOrEmpty() || contra.isNullOrEmpty()) {
             Toast.makeText(this, "Por favor, complete todos los campos.", Toast.LENGTH_SHORT).show()
@@ -85,17 +102,7 @@ class PaginaLogin : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, cifrar(contra))
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    if (cb_inicioAutomatico.isChecked) {
-                        val editor = sharedPreferences.edit()
-                        editor.putBoolean("guardar_credenciales", true)
-                        editor.putString("nick", email)
-                        editor.putString("contraseña", contra)
-                        editor.apply()
-                    } else {
-                        val editor = sharedPreferences.edit()
-                        editor.clear()
-                        editor.apply()
-                    }
+                    guardarCredenciales(email, contra)
                     determinarTipoUsuarioYRedirigir(task.result?.user?.uid ?: "")
                 } else {
                     mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
@@ -103,6 +110,21 @@ class PaginaLogin : AppCompatActivity() {
             }
     }
 
+    // Método para guardar credenciales
+    private fun guardarCredenciales(email: String, contra: String) {
+        if (cbInicioAutomatico.isChecked) {
+            sharedPreferences.edit().apply {
+                putBoolean("guardar_credenciales", true)
+                putString("nick", email)
+                putString("contraseña", contra)
+                apply()
+            }
+        } else {
+            sharedPreferences.edit().clear().apply()
+        }
+    }
+
+    // Método para determinar el tipo de usuario y redirigir a la página correspondiente
     private fun determinarTipoUsuarioYRedirigir(id: String) {
         CoroutineScope(Dispatchers.Main).launch {
             val documento = db.collection("usuarios").document(id).get().await()
@@ -126,6 +148,7 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
+    // Método para mostrar una alerta
     private fun mostrarAlerta(titulo: String, mensaje: String) {
         AlertDialog.Builder(this).apply {
             setTitle(titulo)
@@ -136,6 +159,7 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
+    // Método para aplicar el tema guardado en las preferencias
     private fun aplicarTemaGuardado() {
         val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
         val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
@@ -146,11 +170,12 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
-
+    // Método para generar la clave de cifrado
     private fun generarClave(): Key {
         return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
     }
 
+    // Método para cifrar datos
     private fun cifrar(dato: String): String {
         val clave = generarClave()
         val cifrador = Cipher.getInstance(ALGORITMO)
