@@ -68,8 +68,7 @@ class PaginaLogin : AppCompatActivity() {
         bto_inicioSesion.setOnClickListener {
             val email = et_nick.text.toString().trim()
             val contra = et_contra.text.toString().trim()
-            val contraCifrada = cifrar(contra)
-            iniciarSesion(email, contraCifrada)
+            iniciarSesion(email, contra)
         }
 
         bto_registro.setOnClickListener {
@@ -83,7 +82,7 @@ class PaginaLogin : AppCompatActivity() {
             return
         }
 
-        auth.signInWithEmailAndPassword(email, contra)
+        auth.signInWithEmailAndPassword(email, cifrar(contra))
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     if (cb_inicioAutomatico.isChecked) {
