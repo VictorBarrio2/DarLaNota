@@ -114,7 +114,7 @@ class PaginaAltaActividad : AppCompatActivity() {
         ivPerfil.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
-                val intent = Intent(this@PaginaAltaActividad, PaginaPerfilAlumno::class.java)
+                val intent = Intent(this@PaginaAltaActividad, PaginaPerfilProfe::class.java)
                 intent.putExtra("ID", id)  // Asegura que el ID se pase correctamente
                 startActivity(intent)
             }
