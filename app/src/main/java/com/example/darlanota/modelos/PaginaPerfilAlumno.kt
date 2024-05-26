@@ -89,7 +89,9 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private fun configurarManejadoresEventos() {
         // Manejador de evento para el botón de cambiar instrumento
         btnInstrumento.setOnClickListener {
-            startActivity(Intent(this, PaginaInstrumentos::class.java))
+            val intent = Intent(this, PaginaInstrumentos::class.java)
+            intent.putExtra("ID", id)
+            startActivity(intent)
         }
 
         // Manejador de evento para el botón de cambiar contraseña
@@ -127,8 +129,8 @@ class PaginaPerfilAlumno : AppCompatActivity() {
             val contraCifrada = cifrar(nuevaContrasena) // Cifrado de la contraseña
 
             // Verificación de que la contraseña no esté vacía
-            if (contraCifrada.isBlank()) {
-                Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía", Toast.LENGTH_SHORT).show()
+            if (contraCifrada.isBlank() || nuevaContrasena.length < 6) {
+                Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía o ser menor de 6 caracteres", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
