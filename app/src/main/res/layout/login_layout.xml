@@ -4,46 +4,43 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".modelos.PaginaLogin">
+    android:background="@drawable/background_selector">
 
     <EditText
         android:id="@+id/et_nick"
         android:layout_width="290dp"
         android:layout_height="69dp"
-        android:background="@drawable/borde_negro"
+        android:background="@drawable/edittext_login"
         android:ems="10"
         android:hint="Introduce nombre usuario"
         android:textAlignment="center"
-        android:textColor="#000000"
-        android:textColorHint="#000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.504"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.319" />
-
-    <EditText
-        android:id="@+id/et_contra"
-        android:layout_width="286dp"
-        android:layout_height="72dp"
-        android:background="@drawable/borde_negro"
-        android:ems="10"
-        android:hint="Introduce contraseña"
-        android:inputType="textPassword"
-        android:textAlignment="center"
-        android:textColor="#000000"
-        android:textColorHint="#000000"
+        android:textColorHint="#838080"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.451" />
+        app:layout_constraintVertical_bias="0.373" />
+
+    <EditText
+        android:id="@+id/et_contra"
+        android:layout_width="290dp"
+        android:layout_height="69dp"
+        android:background="@drawable/edittext_login"
+        android:ems="10"
+        android:hint="Introduce contraseña"
+        android:inputType="textPassword"
+        android:textAlignment="center"
+        android:textColorHint="#838080"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/bto_iniciarSesion"
-        android:layout_width="306dp"
+        android:layout_width="234dp"
         android:layout_height="66dp"
         android:backgroundTint="#C60B0F"
         android:text="Iniciar Sesion"
@@ -52,15 +49,15 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.684" />
+        app:layout_constraintVertical_bias="0.724" />
 
     <Button
         android:id="@+id/bto_registro"
-        android:layout_width="306dp"
-        android:layout_height="64dp"
+        android:layout_width="234dp"
+        android:layout_height="66dp"
         android:allowUndo="false"
         android:backgroundTint="#C60B0F"
         android:text="Registrarse"
@@ -68,24 +65,24 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.814" />
+        app:layout_constraintVertical_bias="0.852" />
 
     <CheckBox
         android:id="@+id/cb_guardarSesion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:buttonTint="#FF0000"
         android:text="Recordar Contraseña"
-        android:textColorLink="#F30000"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.562" />
+        app:layout_constraintVertical_bias="0.614" />
 
     <ImageView
         android:id="@+id/imageView3"
@@ -96,8 +93,7 @@
         app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.148"
+        app:layout_constraintVertical_bias="0.09"
         app:srcCompat="@drawable/logo_bueno" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

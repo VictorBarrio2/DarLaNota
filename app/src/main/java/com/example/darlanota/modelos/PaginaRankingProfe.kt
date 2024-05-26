@@ -90,6 +90,7 @@ class PaginaRankingProfe : AppCompatActivity() {
 
         bto_cambiarRanking.setOnClickListener {
             val fragmentoNota = FragmentoNota()
+            intent.putExtra("ID", id)
             fragmentoNota.show(supportFragmentManager, "fragmento_nota")
         }
     }
