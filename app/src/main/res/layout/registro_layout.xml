@@ -20,60 +20,60 @@
 
     <EditText
         android:id="@+id/et_confirmarContra"
+        style="@style/EditTextRounded"
         android:layout_width="290dp"
         android:layout_height="69dp"
-        android:background="@drawable/edittext_login"
         android:ems="10"
-        android:hint="Confirma Contraseña"
+        android:hint="Confirmar contraseña"
         android:inputType="textPassword"
         android:textAlignment="center"
-        android:textColorHint="#838080"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.664" />
+        app:layout_constraintVertical_bias="0.702" />
 
     <EditText
         android:id="@+id/et_crearNick"
+        style="@style/EditTextRounded"
         android:layout_width="290dp"
         android:layout_height="69dp"
-        android:background="@drawable/edittext_login"
         android:ems="10"
         android:hint="Introduce un nombre de usuario"
         android:inputType="text"
         android:textAlignment="center"
-        android:textColorHint="#838080"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.37" />
+        app:layout_constraintVertical_bias="0.398" />
 
     <EditText
         android:id="@+id/et_crearContrasena"
+        style="@style/EditTextRounded"
         android:layout_width="290dp"
         android:layout_height="69dp"
-        android:background="@drawable/edittext_login"
         android:ems="10"
-        android:hint="Introduce una contraseña"
+        android:hint="Introduce contraseña"
         android:inputType="textPassword"
         android:textAlignment="center"
-        android:textColorHint="#838080"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.516" />
+        app:layout_constraintVertical_bias="0.546" />
 
     <Button
         android:id="@+id/bto_crearCuenta"
         android:layout_width="305dp"
         android:layout_height="71dp"
-        android:backgroundTint="#C50B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Crear Cuenta"
         android:textColor="#FFFFFF"
         android:textSize="24sp"

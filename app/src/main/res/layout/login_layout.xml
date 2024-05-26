@@ -8,13 +8,13 @@
 
     <EditText
         android:id="@+id/et_nick"
+        style="@style/EditTextRounded"
         android:layout_width="290dp"
         android:layout_height="69dp"
-        android:background="@drawable/edittext_login"
         android:ems="10"
         android:hint="Introduce nombre usuario"
         android:textAlignment="center"
-        android:textColorHint="#838080"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
@@ -24,14 +24,14 @@
 
     <EditText
         android:id="@+id/et_contra"
+        style="@style/EditTextRounded"
         android:layout_width="290dp"
         android:layout_height="69dp"
-        android:background="@drawable/edittext_login"
         android:ems="10"
         android:hint="Introduce contraseña"
         android:inputType="textPassword"
         android:textAlignment="center"
-        android:textColorHint="#838080"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
@@ -42,7 +42,7 @@
         android:id="@+id/bto_iniciarSesion"
         android:layout_width="234dp"
         android:layout_height="66dp"
-        android:backgroundTint="#C60B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Iniciar Sesion"
         android:textColor="#FFFFFF"
         android:textColorHighlight="#E91E63"
@@ -59,7 +59,7 @@
         android:layout_width="234dp"
         android:layout_height="66dp"
         android:allowUndo="false"
-        android:backgroundTint="#C60B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Registrarse"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
@@ -83,6 +83,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.614" />
+
 
     <ImageView
         android:id="@+id/imageView3"

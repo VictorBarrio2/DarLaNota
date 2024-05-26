@@ -159,7 +159,7 @@
         android:id="@+id/bto_cambiarRanking"
         android:layout_width="263dp"
         android:layout_height="77dp"
-        android:backgroundTint="#C30B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Cambiar Ranking"
         android:textColor="#FFFFFF"
         android:textSize="24sp"

@@ -38,7 +38,7 @@
         android:id="@+id/bto_subirVideo"
         android:layout_width="291dp"
         android:layout_height="72dp"
-        android:backgroundTint="#C50B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Subir Video"
         android:textColor="#FFFFFF"
         android:textSize="24sp"

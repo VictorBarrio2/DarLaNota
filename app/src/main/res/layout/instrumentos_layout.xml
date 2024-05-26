@@ -109,7 +109,7 @@
         android:id="@+id/bto_elegirInstrumento"
         android:layout_width="306dp"
         android:layout_height="65dp"
-        android:backgroundTint="#C40B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Siguiente"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
