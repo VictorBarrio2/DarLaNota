@@ -61,7 +61,7 @@
         android:id="@+id/bto_restar"
         android:layout_width="307dp"
         android:layout_height="65dp"
-        android:backgroundTint="#C30B0F"
+        android:backgroundTint="#EB1C24"
         android:text="Restar"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
