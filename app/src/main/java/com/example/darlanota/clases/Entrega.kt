@@ -15,14 +15,7 @@ data class Entrega(
 
     fun subirEntregaFirestore(idActividad: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            val firestore = FireStore()
-            val resultado = firestore.altaEntrega(idActividad, this@Entrega)
-            if (resultado.isSuccess) {
-                Log.d("Entrega", "Subida exitosa: ${resultado.getOrNull()}")
-            } else {
-                Log.e("Entrega", "Error al subir entrega: ${resultado.exceptionOrNull()?.localizedMessage}")
 
-            }
         }
     }
 }
