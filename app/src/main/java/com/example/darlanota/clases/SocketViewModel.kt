@@ -81,13 +81,17 @@ class SocketViewModel : ViewModel() {
                         actividad.titulo = inputStream!!.readLine()?.trim().toString()
 
                         // Leer cantidad de entregas asociadas
-                        val numEntregas = inputStream!!.readLine()?.trim()?.toIntOrNull() ?: 0
+                        val numEn = inputStream!!.readLine()?.trim()
+                        val cleanEn = numEn?.replace("[^\\d+]".toRegex(), "")
+                        val numEntregas: Int = cleanEn?.toIntOrNull() ?: 0
 
                         // Leer y agregar entregas asociadas a la actividad
                         repeat(numEntregas) {
                             val idActividad = inputStream!!.readLine()?.trim().toString()
                             val video = inputStream!!.readLine()?.trim().toString()
-                            val calificacion = inputStream!!.readLine()?.trim()?.toIntOrNull() ?: 0
+                            val cal = inputStream!!.readLine()?.trim()
+                            val cleanCal = cal?.replace("[^\\d+]".toRegex(), "")
+                            val calificacion: Int = cleanCal?.toIntOrNull() ?: 0
                             val idAlumno = inputStream!!.readLine()?.trim().toString()
 
                             // Crear y agregar entrega solo si el id de actividad coincide
@@ -116,25 +120,6 @@ class SocketViewModel : ViewModel() {
             }
         }
     }
-
-
-
-
-
-    private fun leerEntero(input: String?): Int {
-        return try {
-            val cleanedInput = input?.trim()?.replace("\uFEFF", "") ?: "0" // Remover BOM si está presente
-            cleanedInput.toInt()
-        } catch (e: NumberFormatException) {
-            Log.e(TAG, "Error al convertir cadena a entero: ${e.message}")
-            0
-        }
-    }
-
-
-
-
-
     suspend fun enviarDatosInicioSesion(nick: String, contra: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -152,6 +137,29 @@ class SocketViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error al enviar datos al servidor: ${e.message}")
                 false
+            }
+        }
+    }
+
+    suspend fun enviarDatosRegistro(nick: String, contra: String): Int {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Enviando datos de registro: nick=$nick, contra=$contra")
+                outputStream!!.write("2\n")  // Enviar el número 1 seguido de salto de línea
+                outputStream!!.write("$nick\n")  // Enviar el nick seguido de salto de línea
+                outputStream!!.write("$contra\n")  // Enviar la contraseña seguido de salto de línea
+                outputStream!!.flush()
+
+                val res = inputStream!!.readLine()?.trim()
+                val clearRes = res?.replace("[^\\d+]".toRegex(), "")
+                val numRes: Int = clearRes?.toIntOrNull() ?: 0
+
+                Log.d(TAG, "Respuesta del servidor: $numRes")
+
+                numRes
+            } catch (e: Exception) {
+                Log.e(TAG, "Error al enviar datos al servidor: ${e.message}")
+                4
             }
         }
     }

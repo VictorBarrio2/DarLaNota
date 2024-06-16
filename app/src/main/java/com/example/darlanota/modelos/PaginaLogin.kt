@@ -39,6 +39,7 @@ class PaginaLogin : AppCompatActivity() {
             socketViewModel.conectarServidor("148.3.110.121", 42069)
 
             cargarCredenciales()
+            aplicarTemaGuardado()
         }
 
         // Inicialización de vistas y configuración de listeners
