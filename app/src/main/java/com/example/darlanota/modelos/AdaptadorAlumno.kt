@@ -5,29 +5,19 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
 import com.example.darlanota.modelos.PaginaVerActividad
-import java.text.SimpleDateFormat
-import java.util.Date
 
-class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
+class AdaptadorAlumno(private var dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
 
-    private var dataList: List<Actividad> = dataList
-        set(value) {
-            field = value
-            notifyDataSetChanged()  // Nota: Considera usar DiffUtil aquí para mejorar el rendimiento
-        }
-
-    private val dateFormat = SimpleDateFormat("dd/MM/yyyy")
-
-    init {
-        // Preprocesa la lista para eliminar actividades pasadas
-        this.dataList = dataList.filterNot { it.fechafin?.toDate()?.before(Date()) ?: false }
+    // Método para actualizar la lista de actividades mostradas
+    fun actualizarDatos(nuevaLista: List<Actividad>) {
+        dataList = nuevaLista
+        notifyDataSetChanged()  // Notifica al RecyclerView que los datos han cambiado
     }
 
     // Método para crear nuevas vistas (invocado por el layout manager)
@@ -39,34 +29,35 @@ class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
     // Método para reemplazar el contenido de una vista (invocado por el layout manager)
     override fun onBindViewHolder(holder: DatosHolder, position: Int) {
         val actividad = dataList[position]
-        holder.titulo.text = actividad.titulo
-
-        // Establecer el listener para el clic en la vista del elemento
-        actividad.fechafin?.let { fechaFin ->
-            val fechaString = dateFormat.format(fechaFin.toDate())
-            holder.itemView.setOnClickListener {
-                iniciarPaginaVerActividad(holder, actividad, fechaString)
-            }
-        }
+        holder.bind(actividad)
     }
 
     // Método para obtener el tamaño de la lista de datos (invocado por el layout manager)
     override fun getItemCount(): Int = dataList.size
 
+    // Clase interna que describe la vista del elemento y los metadatos sobre su lugar en el RecyclerView
+    inner class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val titulo: TextView = itemView.findViewById(R.id.tv_tituloActividades)
+
+        // Método para vincular datos de una actividad específica a la vista
+        fun bind(actividad: Actividad) {
+            titulo.text = actividad.titulo
+
+            // Establecer el listener para el clic en la vista del elemento
+            itemView.setOnClickListener {
+                iniciarPaginaVerActividad(itemView.context, actividad)
+            }
+        }
+    }
+
     // Método para iniciar la actividad de visualización de detalles de la actividad
-    private fun iniciarPaginaVerActividad(holder: DatosHolder, actividad: Actividad, fechaString: String) {
-        val intent = Intent(holder.itemView.context, PaginaVerActividad::class.java).apply {
+    private fun iniciarPaginaVerActividad(context: Context, actividad: Actividad) {
+        val intent = Intent(context, PaginaVerActividad::class.java).apply {
             putExtra("ACTIVIDAD_ID", actividad.id)
             putExtra("TITULO", actividad.titulo)
             putExtra("DESCRIPCION", actividad.descripcion)
-            putExtra("FECHA", fechaString)
-            putExtra("ID", id)
+            putExtra("ID", actividad.id_profesor) // Ajusta según la necesidad
         }
-        holder.itemView.context.startActivity(intent)
-    }
-
-    // Clase interna que describe la vista del elemento y los metadatos sobre su lugar en el RecyclerView
-    class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var titulo: TextView = itemView.findViewById(R.id.tv_tituloActividades)
+        context.startActivity(intent)
     }
 }

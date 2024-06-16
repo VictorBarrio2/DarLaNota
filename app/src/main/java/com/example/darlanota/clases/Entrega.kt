@@ -8,14 +8,10 @@ import com.google.firebase.Timestamp
 import java.util.Date
 
 data class Entrega(
-    var idAlumno: String = "",
+    var idActividad: String = "",
     var video: String = "",
-    var calificacion: Int = -1
+    var calificacion: Int = -1,
+    var idAlumno : String = ""
 ) {
 
-    fun subirEntregaFirestore(idActividad: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-
-        }
-    }
 }

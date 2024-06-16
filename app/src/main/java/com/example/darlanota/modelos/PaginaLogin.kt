@@ -30,27 +30,19 @@ class PaginaLogin : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        aplicarTemaGuardado()
         setContentView(R.layout.login_layout)
 
         socketViewModel = ViewModelProvider(this).get(SocketViewModel::class.java)
 
-        // Conectar con el servidor (ajusta la IP y el puerto según tu configuración)
+        // Conectar con el servidor (ajustar la IP y el puerto según la configuración)
         lifecycleScope.launch(Dispatchers.Main) {
-            val conexionExitosa = socketViewModel.conectarServidor("192.168.56.1", 42069)
+            socketViewModel.conectarServidor("148.3.110.121", 42069)
 
-            if (conexionExitosa) {
-                // El servidor se ha conectado correctamente
-                cargarCredenciales()
-            } else {
-                // Mostrar mensaje de error
-                mostrarAlerta("Error de conexión", "No se pudo conectar al servidor.")
-            }
+            cargarCredenciales()
         }
 
-        // Inicializar las vistas
+        // Inicialización de vistas y configuración de listeners
         inicializarVistas()
-        cargarCredenciales()
     }
 
     private fun inicializarVistas() {
@@ -61,6 +53,16 @@ class PaginaLogin : AppCompatActivity() {
         cbInicioAutomatico = findViewById(R.id.cb_guardarSesion)
 
         sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
+
+        btoInicioSesion.setOnClickListener {
+            val nick = etNick.text.toString().trim()
+            val contra = etContra.text.toString().trim()
+            iniciarSesion(nick, contra)
+        }
+
+        btoRegistro.setOnClickListener {
+            startActivity(Intent(this, PaginaRegistro::class.java))
+        }
     }
 
     private fun cargarCredenciales() {
@@ -69,28 +71,7 @@ class PaginaLogin : AppCompatActivity() {
             etNick.setText(sharedPreferences.getString("nick", ""))
             etContra.setText(sharedPreferences.getString("contraseña", ""))
             cbInicioAutomatico.isChecked = true
-        }
-
-        btoInicioSesion.setOnClickListener {
-            val nick = etNick.text.toString().trim()
-            val contra = etContra.text.toString().trim()
-
-            lifecycleScope.launch {
-                val exitoso = socketViewModel.enviarDatosInicioSesion(nick, contra)
-                if (exitoso) {
-                    Toast.makeText(this@PaginaLogin, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
-                    guardarCredenciales(nick, contra)
-                    val intent = Intent(this@PaginaLogin, PaginaActividadAlumno::class.java)
-                    intent.putExtra("NICK", nick)
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this@PaginaLogin, "Alguno de los campos no son correctos", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-        btoRegistro.setOnClickListener {
-            startActivity(Intent(this, PaginaRegistro::class.java))
+            iniciarSesion(etNick.text.toString(), etContra.text.toString())
         }
     }
 
@@ -107,16 +88,6 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
-    private fun mostrarAlerta(titulo: String, mensaje: String) {
-        AlertDialog.Builder(this).apply {
-            setTitle(titulo)
-            setMessage(mensaje)
-            setPositiveButton("Aceptar", null)
-            create()
-            show()
-        }
-    }
-
     private fun aplicarTemaGuardado() {
         val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
         val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
@@ -124,6 +95,21 @@ class PaginaLogin : AppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
+    }
+
+    private fun iniciarSesion(nick : String, contra: String){
+        lifecycleScope.launch {
+            val exitoso = socketViewModel.enviarDatosInicioSesion(nick, contra)
+            if (exitoso) {
+                Toast.makeText(this@PaginaLogin, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
+                guardarCredenciales(nick, contra)
+                val intent = Intent(this@PaginaLogin, PaginaActividadAlumno::class.java)
+                intent.putExtra("NICK", nick)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this@PaginaLogin, "Alguno de los campos no son correctos", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
