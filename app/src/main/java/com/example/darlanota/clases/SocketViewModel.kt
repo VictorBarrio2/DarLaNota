@@ -40,7 +40,7 @@ class SocketViewModel : ViewModel() {
         }
     }
 
-    suspend fun listaActividades(c: Context): List<Actividad> {
+    suspend fun listaActividades(): List<Actividad> {
         return withContext(Dispatchers.IO) {
             try {
                 if (socket == null || socket!!.isClosed) {
@@ -59,9 +59,6 @@ class SocketViewModel : ViewModel() {
                 // Mostrar Toast con el número recibido (para depuración)
                 val numText = "El número es $numero"
                 Log.d(TAG, numText) // Log para asegurar que se recibió correctamente
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(c, numText, Toast.LENGTH_SHORT).show()
-                }
 
                 // Verificar si el número es válido y mayor que cero para usarlo en un bucle
                 if (numero > 0) {
@@ -107,10 +104,6 @@ class SocketViewModel : ViewModel() {
                     // Devolver la lista de actividades construida
                     actividades
                 } else {
-                    // Manejar el caso donde el número recibido no es válido
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(c, "No se recibió un número válido de actividades", Toast.LENGTH_SHORT).show()
-                    }
                     emptyList()
                 }
             } catch (e: Exception) {
@@ -175,5 +168,60 @@ class SocketViewModel : ViewModel() {
             Log.e(TAG, "Error al cerrar recursos: ${e.message}")
         }
         super.onCleared()
+    }
+
+    suspend fun devolverAlumno(nick: String): Alumno? {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Pidiendo datos al servidor del usuario: $nick")
+                outputStream!!.write("6\n")
+                outputStream!!.write("$nick\n")
+                outputStream!!.flush()
+
+                val id = inputStream!!.readLine()?.trim() ?: return@withContext null
+                val contra = inputStream!!.readLine()?.trim() ?: return@withContext null
+                val cal = inputStream!!.readLine()?.trim() ?: return@withContext null
+                val clearCal = cal.replace("[^\\d+]".toRegex(), "")
+                val calificacion: Int = clearCal.toIntOrNull() ?: 0
+
+                Alumno(id, nick, contra, calificacion)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error al enviar datos al servidor: ${e.message}")
+                null
+            }
+        }
+    }
+
+    suspend fun cambiarContrasena(nick: String, contraNueva: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+
+                if(contraNueva.length < 5){
+                    false
+                }else{
+                    Log.d(TAG, "Enviando solicitud de cambio de contraseña para el usuario: $nick")
+                    outputStream!!.write("8\n")
+                    outputStream!!.write("$nick\n")
+                    outputStream!!.write("$contraNueva\n")
+                    outputStream!!.flush()
+
+                    val respuesta = inputStream!!.readLine()?.trim() ?: ""
+                    Log.d(TAG, "Respuesta del servidor: $respuesta")
+
+                    val res = inputStream!!.readLine()?.trim() ?: ""
+                    val resCal = res.replace("[^\\d+]".toRegex(), "")
+                    val respuestaFinal: Int = resCal.toIntOrNull() ?: 0
+                    Log.d(TAG, "Respuesta del servidor: $respuestaFinal")
+                    if(respuestaFinal == 1){
+                        true
+                    }else{
+                        false
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error al enviar datos al servidor: ${e.message}")
+                false
+            }
+        }
     }
 }

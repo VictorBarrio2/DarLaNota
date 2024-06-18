@@ -35,10 +35,8 @@ class PaginaRegistro : AppCompatActivity() {
 
         socketViewModel = ViewModelProvider(this).get(SocketViewModel::class.java)
 
-        // Inicializar vistas
         inicializarVistas()
 
-        // Configurar listener para el botón de crear cuenta
         btnCrearCuenta.setOnClickListener {
             registrarUsuario()
         }

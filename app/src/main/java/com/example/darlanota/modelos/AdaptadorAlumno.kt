@@ -11,7 +11,7 @@ import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
 import com.example.darlanota.modelos.PaginaVerActividad
 
-class AdaptadorAlumno(private var dataList: List<Actividad>) :
+class AdaptadorAlumno(private var dataList: List<Actividad>, private var nickAlumno: String) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
 
     // Método para actualizar la lista de actividades mostradas
@@ -45,18 +45,19 @@ class AdaptadorAlumno(private var dataList: List<Actividad>) :
 
             // Establecer el listener para el clic en la vista del elemento
             itemView.setOnClickListener {
-                iniciarPaginaVerActividad(itemView.context, actividad)
+                iniciarPaginaVerActividad(itemView.context, actividad, nickAlumno)
             }
         }
     }
 
     // Método para iniciar la actividad de visualización de detalles de la actividad
-    private fun iniciarPaginaVerActividad(context: Context, actividad: Actividad) {
+    private fun iniciarPaginaVerActividad(context: Context, actividad: Actividad, nickAlumno: String) {
         val intent = Intent(context, PaginaVerActividad::class.java).apply {
             putExtra("ACTIVIDAD_ID", actividad.id)
             putExtra("TITULO", actividad.titulo)
             putExtra("DESCRIPCION", actividad.descripcion)
-            putExtra("ID", actividad.id_profesor) // Ajusta según la necesidad
+            putExtra("FECHAFIN", actividad.fechafin)
+            putExtra("NICK", nickAlumno)
         }
         context.startActivity(intent)
     }
