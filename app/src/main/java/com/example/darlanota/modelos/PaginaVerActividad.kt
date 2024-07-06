@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.darlanota.R
 import com.example.darlanota.clases.Entrega
+import com.example.darlanota.clases.FireStore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,15 +100,38 @@ class PaginaVerActividad : AppCompatActivity() {
 
     // Verifica si la actividad ya ha sido entregada y calificada
     private fun verificarEntregaYCalificacion() {
+        val firestoreService = FireStore()
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 // Obtener la referencia a la actividad en Firestore
+                val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
+                val actividadSnapshot = actividadRef.get().await()
+                val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
+                val entregaMap = entregas.find { it["idAlumno"] == id }
 
                 // Verificar si ya existe una entrega
+                if (entregaMap != null) {
+                    val entrega = Entrega(
+                        idAlumno = entregaMap["idAlumno"] as String,
+                        video = entregaMap["video"] as String,
+                        calificacion = (entregaMap["calificacion"] as Long).toInt()
+                    )
+                    entregado = true
+                    textoEntregado.text = "Entregado: Sí"
+                    if (entrega.calificacion >= 0) {
+                        textoCalificacion.text = "Calificación: ${entrega.calificacion}"
+                    } else {
+                        textoCalificacion.text = "Calificación: No calificado"
+                    }
 
+                } else {
+                    textoEntregado.text = "Entregado: No"
+                }
             } catch (e: Exception) {
-
-
+                // Registrar la incidencia en Firestore en caso de error
+                val firestore = FireStore()
+                firestore.registrarIncidencia("Error al verificar la entrega: ${e.localizedMessage}")
+                Log.e("FireStore", "Error al verificar la entrega: ${e.localizedMessage}", e)
             }
         }
     }
@@ -118,17 +142,67 @@ class PaginaVerActividad : AppCompatActivity() {
         if (requestCode == CODIGO_SELECCION_VIDEO && resultCode == RESULT_OK && data != null) {
             data.data?.let { uri ->
                 if (entregado) {
-
+                    actualizarVideoEnFirestore(uri)
                 } else {
-
+                    subirVideoAFirebase(uri)
                 }
             }
         }
     }
 
     // Actualiza un video ya entregado en Firestore
+    private fun actualizarVideoEnFirestore(uriVideo: Uri) {
+        val nuevoVideoPath = "videos/${uriVideo.lastPathSegment}"
+        val firestoreService = FireStore()
 
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Obtener referencia y datos de la actividad en Firestore
+                val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
+                val actividadSnapshot = actividadRef.get().await()
+                val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
+                val entrega = entregas.find { it["idAlumno"] == id }
+                val videoAntiguoPath = entrega?.get("video") as? String
+
+                // Eliminar video antiguo si existe
+                if (!videoAntiguoPath.isNullOrEmpty()) {
+                    val storageRef = FirebaseStorage.getInstance().getReference(videoAntiguoPath)
+                    storageRef.delete().await()
+                }
+
+                // Subir el nuevo video a Firebase Storage
+                val storageRefNuevo = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
+                storageRefNuevo.putFile(uriVideo).await()
+
+                // Actualizar la entrega en Firestore
+                firestoreService.actualizarVideoEntrega(id_actividad, id, nuevoVideoPath)
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(applicationContext, "Entrega actualizada", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("UpdateVideo", "Error actualizando video: ${e.localizedMessage}")
+                    Toast.makeText(applicationContext, "Error al actualizar video", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     // Sube un nuevo video a Firebase
+    private fun subirVideoAFirebase(uriVideo: Uri) {
+        val videoPath = "videos/${uriVideo.lastPathSegment}"
+        val storageRef = FirebaseStorage.getInstance().reference.child(videoPath)
 
+        // Subir video a Firebase Storage y actualizar Firestore
+        storageRef.putFile(uriVideo).addOnSuccessListener {
+            val nuevaEntrega = Entrega(idAlumno = id, video = videoPath, calificacion = -1)
+            nuevaEntrega.subirEntregaFirestore(id_actividad)
+            entregado = true
+            textoEntregado.text = "Entregado: Sí"
+            Toast.makeText(this, "Video subido exitosamente", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error al subir video", Toast.LENGTH_SHORT).show()
+        }
+    }
 }

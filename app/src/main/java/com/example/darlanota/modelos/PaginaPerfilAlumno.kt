@@ -10,11 +10,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.darlanota.R
-import com.example.darlanota.clases.SocketViewModel
+import com.example.darlanota.clases.FireStore
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
@@ -38,31 +35,25 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var imagenTema: ImageView
     private lateinit var etContra: EditText
     private lateinit var tvNombre: TextView
-    private lateinit var nickAlumno: String
-    private lateinit var socketViewModel: SocketViewModel
+    private lateinit var id: String
+    private lateinit var fireStore: FireStore
 
     // Método que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.perfil_alumno_layout)
 
+        // Inicialización de Firebase
+        FirebaseApp.initializeApp(this)
+
         // Obtención del ID del intent
-        nickAlumno = intent.getStringExtra("NICK") ?: "DefaultID"
-
-        socketViewModel = ViewModelProvider(this).get(SocketViewModel::class.java)
-
-        lifecycleScope.launch {
-            try {
-                socketViewModel.conectarServidor("148.3.110.121", 42069)
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this@PaginaPerfilAlumno, "Error al obtener datos del usuario", Toast.LENGTH_SHORT).show()
-            }
-        }
+        id = intent.getStringExtra("ID") ?: "DefaultID"
 
         // Inicialización de las vistas de la actividad
         inicializarVistas()
+
+        // Carga de los datos del usuario
+        cargarDatosUsuario()
 
         // Aplicación de la imagen del tema
         aplicarImagenTema()
@@ -76,12 +67,22 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         ivRanking = findViewById(R.id.iv_rankingPerfil)
         ivActividades = findViewById(R.id.iv_actividadesPerfil)
         btnContra = findViewById(R.id.bto_cambiarContra)
+        btnInstrumento = findViewById(R.id.bto_cambiarInstrumento)
         etContra = findViewById(R.id.et_contraPerfilAlumno)
         ivCerrarSesion = findViewById(R.id.iv_salir)
         tvNombre = findViewById(R.id.tv_nickPerfil)
         imagenTema = findViewById(R.id.iv_temaAlumno)
+        fireStore = FireStore() // Inicialización de FireStore
+    }
 
-        tvNombre.text = nickAlumno
+    // Método para cargar los datos del usuario desde Firestore
+    private fun cargarDatosUsuario() {
+        CoroutineScope(Dispatchers.Main).launch {
+            // Obtención del nombre del usuario desde Firestore
+            val nombre = fireStore.obtenerNombreUsuario(id)
+            // Establecimiento del nombre en el TextView correspondiente
+            tvNombre.text = nombre ?: "Nombre no disponible"
+        }
     }
 
     // Método para configurar los manejadores de eventos de los botones e imágenes
@@ -94,12 +95,12 @@ class PaginaPerfilAlumno : AppCompatActivity() {
 
         // Manejador de evento para la imagen de actividades
         ivActividades.setOnClickListener {
-            startActivity(Intent(this, PaginaActividadAlumno::class.java).also { it.putExtra("NICK", nickAlumno) })
+            startActivity(Intent(this, PaginaActividadAlumno::class.java).also { it.putExtra("ID", id) })
         }
 
         // Manejador de evento para la imagen de ranking
         ivRanking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingAlumno::class.java).also { it.putExtra("NICK", nickAlumno) })
+            startActivity(Intent(this, PaginaRankingAlumno::class.java).also { it.putExtra("ID", id) })
         }
 
         // Manejador de evento para la imagen de cerrar sesión
@@ -119,27 +120,26 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             // Obtención de la nueva contraseña desde el EditText
             val nuevaContrasena = etContra.text.toString()
-
+            val contraCifrada = cifrar(nuevaContrasena) // Cifrado de la contraseña
 
             // Verificación de que la contraseña no esté vacía
-            if (nuevaContrasena.isBlank() || nuevaContrasena.length < 5) {
+            if (contraCifrada.isBlank() || nuevaContrasena.length < 6) {
                 Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía o ser menor de 6 caracteres", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            lifecycleScope.launch {
-                if(socketViewModel.cambiarContrasena(nickAlumno, nuevaContrasena)){
-                    Toast.makeText(
-                        this@PaginaPerfilAlumno,
-                        "Contraseña cambiada",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }else{
-                    Toast.makeText(
-                        this@PaginaPerfilAlumno,
-                        "Error al cambiar la contraseña",
-                        Toast.LENGTH_LONG
-                    ).show()
+
+            // Obtención del usuario actual de FirebaseAuth
+            val usuarioActual = FirebaseAuth.getInstance().currentUser
+            if (usuarioActual != null) {
+                try {
+                    // Cambio de la contraseña del usuario en Firestore
+                    val resultado = fireStore.cambiarContrasenaUsuario(contraCifrada)
+                    Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Toast.makeText(this@PaginaPerfilAlumno, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
+            } else {
+                Toast.makeText(this@PaginaPerfilAlumno, "No hay usuario autenticado. Por favor, inicie sesión.", Toast.LENGTH_LONG).show()
             }
         }
     }
