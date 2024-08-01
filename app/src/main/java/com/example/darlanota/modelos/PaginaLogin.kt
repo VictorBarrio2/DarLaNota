@@ -104,7 +104,7 @@ class PaginaLogin : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, contraCifrada)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    guardarCredenciales(email, contra)
+                    guardarCredenciales(email, contraCifrada)
                     determinarTipoUsuarioYRedirigir(task.result?.user?.uid ?: "")
                 } else {
                     mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
@@ -129,7 +129,6 @@ class PaginaLogin : AppCompatActivity() {
     // Método para determinar el tipo de usuario y redirigir a la página correspondiente
     private fun determinarTipoUsuarioYRedirigir(id: String) {
         CoroutineScope(Dispatchers.Main).launch {
-            mostrarAlerta("ID", id)
             val documento = db.collection("usuarios").document(id).get().await()
             if (!documento.exists()) {
                 mostrarAlerta("Error de inicio de sesión", "Usuario no encontrado en la base de datos.")
