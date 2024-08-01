@@ -66,10 +66,11 @@ class PaginaRegistro : AppCompatActivity() {
             // Crear cuenta de usuario con email y contraseña en Firebase
             auth.createUserWithEmailAndPassword(nick, contraCifrada).addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val id = task.result?.user?.uid // Obtiene el ID del usuario de Firebase
+                    val id : String
+                    id = task.result?.user?.uid.toString() // Obtiene el ID del usuario de Firebase
                     Toast.makeText(this, "Registro exitoso.", Toast.LENGTH_SHORT).show()
 
-                    crearNuevoAlumno(nick, contra)
+                    crearNuevoAlumno(nick, contraCifrada, id)
                 } else {
                     // Si falla el registro, mostrar un mensaje al usuario.
                     Toast.makeText(this, "Error de registro: ${task.exception?.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -93,18 +94,19 @@ class PaginaRegistro : AppCompatActivity() {
         return true
     }
 
-    private fun crearNuevoAlumno(contra: String, nick: String) {
+    private fun crearNuevoAlumno(nick: String, contra: String, id: String) {
         val alumno = Alumno(contra, nick, "alumno", 0)
         db.collection("usuarios")
-            .add(alumno)
-            .addOnSuccessListener { documentReference ->
-                val newId = documentReference.id
-                iniciarActividadAlumno(newId)
+            .document(id)  // Aquí especificas el ID del documento
+            .set(alumno)  // Usa set() en lugar de add() para definir el contenido del documento
+            .addOnSuccessListener {
+                iniciarActividadAlumno(id)  // Usa el ID proporcionado
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error al crear alumno: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
     }
+
 
     private fun iniciarActividadAlumno(id: String) {
         finishAffinity()

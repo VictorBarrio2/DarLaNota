@@ -6,21 +6,33 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/iv_perfilAcAl"
-        android:layout_width="70dp"
-        android:layout_height="64dp"
+        android:id="@+id/iv_actividadesLogro"
+        android:layout_width="90dp"
+        android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.046"
+        app:layout_constraintHorizontal_bias="0.831"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.047"
-        app:srcCompat="@drawable/logo_perfil" />
+        app:layout_constraintVertical_bias="0.975"
+        app:srcCompat="@drawable/actividades" />
 
     <ImageView
-        android:id="@+id/iv_rankingAcAl"
+        android:id="@+id/iv_logroLogro"
+        android:layout_width="91dp"
+        android:layout_height="89dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.159"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.975"
+        app:srcCompat="@drawable/logro" />
+
+    <ImageView
+        android:id="@+id/iv_rankingLogro"
         android:layout_width="90dp"
-        android:layout_height="79dp"
+        android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -30,38 +42,29 @@
         app:srcCompat="@drawable/ranking" />
 
     <ImageView
-        android:id="@+id/iv_actividadesAcAl"
-        android:layout_width="91dp"
-        android:layout_height="81dp"
+        android:id="@+id/iv_perfilLogro"
+        android:layout_width="70dp"
+        android:layout_height="64dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.856"
+        app:layout_constraintHorizontal_bias="0.046"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.978"
-        app:srcCompat="@drawable/actividades" />
+        app:layout_constraintVertical_bias="0.065"
+        app:srcCompat="@drawable/logo_perfil" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_reciclador"
-        android:layout_width="319dp"
-        android:layout_height="497dp"
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="326dp"
+        android:layout_height="75dp"
+        android:max="5000"
+        android:progress="2000"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.811"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.497" />
-
-    <ImageView
-        android:id="@+id/iv_logoActividadAl"
-        android:layout_width="91dp"
-        android:layout_height="89dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.143"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.978"
-        app:srcCompat="@drawable/logro" />
-
+        app:layout_constraintVertical_bias="0.246" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,6 +30,7 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var btnInstrumento: Button
     private lateinit var btnContra: Button
     private lateinit var ivRanking: ImageView
+    private lateinit var iv_logro: ImageView
     private lateinit var ivActividades: ImageView
     private lateinit var ivCerrarSesion: ImageView
     private lateinit var imagenTema: ImageView
@@ -67,12 +68,12 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         ivRanking = findViewById(R.id.iv_rankingPerfil)
         ivActividades = findViewById(R.id.iv_actividadesPerfil)
         btnContra = findViewById(R.id.bto_cambiarContra)
-        btnInstrumento = findViewById(R.id.bto_cambiarInstrumento)
         etContra = findViewById(R.id.et_contraPerfilAlumno)
         ivCerrarSesion = findViewById(R.id.iv_salir)
         tvNombre = findViewById(R.id.tv_nickPerfil)
         imagenTema = findViewById(R.id.iv_temaAlumno)
         fireStore = FireStore() // Inicialización de FireStore
+        iv_logro = findViewById(R.id.iv_logroPerfilAl)
     }
 
     // Método para cargar los datos del usuario desde Firestore
@@ -112,6 +113,12 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         // Manejador de evento para la imagen de tema
         imagenTema.setOnClickListener {
             cambiarTema()
+        }
+
+        iv_logro.setOnClickListener {
+            startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
+                putExtra("ID", id)
+            })
         }
     }
 

@@ -42,7 +42,19 @@ class PaginaLogin : AppCompatActivity() {
     // Método principal que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializar sharedPreferences
+        sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
+
         aplicarTemaGuardado()
+
+        val guardarCredenciales = sharedPreferences.getBoolean("guardar_credenciales", false)
+        if (guardarCredenciales) {
+            val nick = sharedPreferences.getString("nick", "")
+            val contra = sharedPreferences.getString("contraseña", "")
+            val check = true
+            iniciarSesion(nick, contra)
+        }
         setContentView(R.layout.login_layout)
         FirebaseApp.initializeApp(this)
 
@@ -64,21 +76,10 @@ class PaginaLogin : AppCompatActivity() {
         btoInicioSesion = findViewById(R.id.bto_iniciarSesion)
         btoRegistro = findViewById(R.id.bto_registro)
         cbInicioAutomatico = findViewById(R.id.cb_guardarSesion)
-
-        // Inicializar sharedPreferences
-        sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
     }
 
     // Método para cargar credenciales guardadas
     private fun cargarCredenciales() {
-        val guardarCredenciales = sharedPreferences.getBoolean("guardar_credenciales", false)
-        if (guardarCredenciales) {
-            etNick.setText(sharedPreferences.getString("nick", ""))
-            etContra.setText(sharedPreferences.getString("contraseña", ""))
-            cbInicioAutomatico.isChecked = true
-            iniciarSesion(etNick.text.toString(), etContra.text.toString())
-        }
-
         // Configurar el listener para el botón de inicio de sesión
         btoInicioSesion.setOnClickListener {
             val email = etNick.text.toString().trim()
@@ -94,12 +95,13 @@ class PaginaLogin : AppCompatActivity() {
 
     // Método para iniciar sesión
     private fun iniciarSesion(email: String?, contra: String?) {
+
         if (email.isNullOrEmpty() || contra.isNullOrEmpty()) {
             Toast.makeText(this, "Por favor, complete todos los campos.", Toast.LENGTH_SHORT).show()
             return
         }
-
-        auth.signInWithEmailAndPassword(email, cifrar(contra))
+        val contraCifrada = cifrar(contra)
+        auth.signInWithEmailAndPassword(email, contraCifrada)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     guardarCredenciales(email, contra)
@@ -116,7 +118,7 @@ class PaginaLogin : AppCompatActivity() {
             sharedPreferences.edit().apply {
                 putBoolean("guardar_credenciales", true)
                 putString("nick", email)
-                putString("contraseña", contra)
+                putString("contraseña", contra) // Consider encrypting the password before storing it
                 apply()
             }
         } else {
@@ -127,6 +129,7 @@ class PaginaLogin : AppCompatActivity() {
     // Método para determinar el tipo de usuario y redirigir a la página correspondiente
     private fun determinarTipoUsuarioYRedirigir(id: String) {
         CoroutineScope(Dispatchers.Main).launch {
+            mostrarAlerta("ID", id)
             val documento = db.collection("usuarios").document(id).get().await()
             if (!documento.exists()) {
                 mostrarAlerta("Error de inicio de sesión", "Usuario no encontrado en la base de datos.")
@@ -170,17 +173,16 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
-    // Método para generar la clave de cifrado
-    private fun generarClave(): Key {
-        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
-    }
-
-    // Método para cifrar datos
     private fun cifrar(dato: String): String {
         val clave = generarClave()
         val cifrador = Cipher.getInstance(ALGORITMO)
         cifrador.init(Cipher.ENCRYPT_MODE, clave)
         val valorCifrado = cifrador.doFinal(dato.toByteArray())
         return Base64.encodeToString(valorCifrado, Base64.DEFAULT)
+    }
+
+    // Método para generar una clave de cifrado
+    private fun generarClave(): Key {
+        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
     }
 }

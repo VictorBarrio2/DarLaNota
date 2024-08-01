@@ -28,6 +28,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private lateinit var iv_ranking: ImageView
     private lateinit var iv_actividades: ImageView
     private lateinit var iv_perfil: ImageView
+    private lateinit var iv_logro: ImageView
 
     private lateinit var id: String
     private val fireStore = FireStore()
@@ -67,6 +68,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
         iv_ranking = findViewById(R.id.iv_rankingRaAl)
         iv_actividades = findViewById(R.id.iv_actividadesRaAl)
         iv_perfil = findViewById(R.id.iv_perfilRaAl)
+        iv_logro = findViewById(R.id.iv_logroRankingAl)
     }
 
     // Método para configurar los listeners de los botones
@@ -84,6 +86,12 @@ class PaginaRankingAlumno : AppCompatActivity() {
                 intent.putExtra("ID", id)
                 startActivity(intent)
             }
+        }
+
+        iv_logro.setOnClickListener {
+            startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
+                putExtra("ID", id)
+            })
         }
     }
 

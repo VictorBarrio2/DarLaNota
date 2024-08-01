@@ -30,6 +30,7 @@ class PaginaVerActividad : AppCompatActivity() {
     private lateinit var textoEntregado: TextView
     private lateinit var iconoPerfil: ImageView
     private lateinit var iconoActividades: ImageView
+    private lateinit var iv_logro: ImageView
     private lateinit var iconoRanking: ImageView
     private lateinit var id: String
     private lateinit var id_actividad: String
@@ -59,6 +60,7 @@ class PaginaVerActividad : AppCompatActivity() {
         fechaCierre = findViewById(R.id.tv_fechaCierre)
         iconoPerfil = findViewById(R.id.iv_perfilVer)
         iconoRanking = findViewById(R.id.iv_rankingVer)
+        iv_logro = findViewById(R.id.iv_logoVerActividades)
         botonSubirVideo = findViewById(R.id.bto_subirVideo)
 
         // Obtener los datos pasados desde la actividad anterior
@@ -80,6 +82,11 @@ class PaginaVerActividad : AppCompatActivity() {
         iconoActividades.setOnClickListener { navegarA(PaginaActividadAlumno::class.java) }
         iconoRanking.setOnClickListener { navegarA(PaginaRankingAlumno::class.java) }
         iconoPerfil.setOnClickListener { navegarA(PaginaPerfilAlumno::class.java) }
+        iv_logro.setOnClickListener {
+            startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
+                putExtra("ID", id)
+            })
+        }
     }
 
     // Método para navegar a otra actividad pasando el ID del usuario

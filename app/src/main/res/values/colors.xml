@@ -7,6 +7,8 @@
     <color name="white">#FFFFFF</color>
     <color name="edittext_text_color">#000000</color> <!-- Negro para tema claro -->
     <color name="edittext_hint_color">#838080</color>
+    <color name="colorPrimaryDark">#141218</color>
+    <color name="colorPrimaryLight">#FFFFFF</color>
 </resources>
 
 

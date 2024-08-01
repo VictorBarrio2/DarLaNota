@@ -29,7 +29,7 @@
         <activity android:name=".modelos.PaginaPerfilAlumno" android:screenOrientation="portrait" />
         <activity android:name=".modelos.PaginaPerfilProfe" android:screenOrientation="portrait" />
         <activity android:name=".modelos.PaginaActividadProfe" android:screenOrientation="portrait" />
-        <activity android:name=".modelos.PaginaInstrumentos" android:screenOrientation="portrait" />
+        <activity android:name=".modelos.PaginaLogrosAlumno" android:screenOrientation="portrait" />
         <activity android:name=".modelos.PaginaRegistro" android:screenOrientation="portrait" />
         <activity android:name=".modelos.PaginaRankingProfe" android:screenOrientation="portrait" />
         <activity android:name=".modelos.PaginaVerActividad" android:screenOrientation="portrait" />
