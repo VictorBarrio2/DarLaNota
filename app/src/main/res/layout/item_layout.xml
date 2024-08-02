@@ -26,8 +26,8 @@
 
     <TextView
         android:id="@+id/tv_tituloActividades"
-        android:layout_width="236dp"
-        android:layout_height="66dp"
+        android:layout_width="232dp"
+        android:layout_height="39dp"
         android:textAlignment="center"
         android:textColor="#000000"
         android:textSize="24sp"
@@ -35,6 +35,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.506"
         tools:text="Titulo" />
+
+    <TextView
+        android:id="@+id/tv_fechaAct"
+        android:layout_width="92dp"
+        android:layout_height="23dp"
+        android:text="--/--/----"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.826"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.809" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

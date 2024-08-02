@@ -86,7 +86,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
 
 
     // Método para cargar las actividades del alumno
-    private fun cargarActividades(num : Int) {
+    private fun cargarActividades(num: Int) {
         val id = intent.getStringExtra("ID")
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -96,14 +96,18 @@ class PaginaActividadAlumno : AppCompatActivity() {
                 // Filtra actividades pasadas y las elimina
                 val actividadesValidas = filtrarYEliminarActividadesPasadas(actividadesList, num)
 
-                // Configura el adaptador con las actividades válidas
-                configurarAdaptador(actividadesValidas, id.toString())
+                // Ordena las actividades válidas por fecha de finalización, de más pronto a más tardío
+                val actividadesOrdenadas = actividadesValidas.sortedBy { it.fechafin?.toDate() }
+
+                // Configura el adaptador con las actividades válidas y ordenadas
+                configurarAdaptador(actividadesOrdenadas, id.toString())
             } catch (e: Exception) {
                 Toast.makeText(this@PaginaActividadAlumno, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 fireStore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
             }
         }
     }
+
 
     // Método para filtrar y eliminar actividades pasadas
     private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>, num: Int): List<Actividad> {

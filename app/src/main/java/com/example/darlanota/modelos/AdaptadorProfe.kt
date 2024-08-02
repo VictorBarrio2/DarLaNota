@@ -8,6 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
+import org.w3c.dom.Text
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class AdaptadorProfe(private val profesorId: String, private val dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorProfe.DatosHolder>() {
@@ -24,11 +27,19 @@ class AdaptadorProfe(private val profesorId: String, private val dataList: List<
         val actividad = dataList[position]
         holder.textView.text = actividad.titulo
 
+        // Convertir el Timestamp a Date y luego formatearlo
+        val fechaFin = actividad.fechafin?.toDate()
+        val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val fechaFormateada = fechaFin?.let { formatoFecha.format(it) } ?: "Sin fecha"
+
+        holder.fecha.text = fechaFormateada
+
         // Establecer el listener para el clic en la vista del elemento
         holder.itemView.setOnClickListener {
             iniciarPaginaCorregirActividad(holder, actividad)
         }
     }
+
 
     // Método para obtener el tamaño de la lista de datos (invocado por el layout manager)
     override fun getItemCount(): Int = dataList.size
@@ -46,5 +57,6 @@ class AdaptadorProfe(private val profesorId: String, private val dataList: List<
     // Clase interna que describe la vista del elemento y los metadatos sobre su lugar en el RecyclerView
     class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var textView: TextView = itemView.findViewById(R.id.tv_tituloActividades)
+        var fecha : TextView = itemView.findViewById(R.id.tv_fechaAct)
     }
 }

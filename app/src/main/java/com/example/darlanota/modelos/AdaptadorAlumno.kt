@@ -13,6 +13,7 @@ import com.example.darlanota.clases.Actividad
 import com.example.darlanota.modelos.PaginaVerActividad
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
@@ -42,11 +43,15 @@ class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
         holder.titulo.text = actividad.titulo
 
         // Establecer el listener para el clic en la vista del elemento
-        actividad.fechafin?.let { fechaFin ->
-            val fechaString = dateFormat.format(fechaFin.toDate())
-            holder.itemView.setOnClickListener {
-                iniciarPaginaVerActividad(holder, actividad, fechaString)
-            }
+        val fechaFin = actividad.fechafin?.toDate()
+        val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val fechaFormateada = fechaFin?.let { formatoFecha.format(it) } ?: "Sin fecha"
+
+        holder.fecha.text = fechaFormateada
+
+        // Establecer el listener para el clic en la vista del elemento
+        holder.itemView.setOnClickListener {
+            iniciarPaginaVerActividad(holder, actividad, fechaFormateada)
         }
     }
 
@@ -68,5 +73,6 @@ class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
     // Clase interna que describe la vista del elemento y los metadatos sobre su lugar en el RecyclerView
     class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var titulo: TextView = itemView.findViewById(R.id.tv_tituloActividades)
+        var fecha : TextView = itemView.findViewById(R.id.tv_fechaAct)
     }
 }

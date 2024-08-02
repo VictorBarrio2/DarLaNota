@@ -48,7 +48,7 @@ class PaginaActividadProfe : AppCompatActivity() {
         // Configura los listeners para las vistas
         configurarListeners(id)
 
-        configurarSpinner(id)
+        configurarSpinner()
 
     }
 
@@ -86,23 +86,28 @@ class PaginaActividadProfe : AppCompatActivity() {
     }
 
     // Método para cargar las actividades del profesor
-    private fun cargarActividades(id: String, num : Int) {
+    private fun cargarActividades(num: Int) {
+        val id = intent.getStringExtra("ID")
+
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
 
-                // Filtrar actividades pasadas y eliminarlas
+                // Filtra actividades pasadas y las elimina
                 val actividadesValidas = filtrarYEliminarActividadesPasadas(actividadesList, num)
 
-                // Configura el adaptador con las actividades válidas
-                configurarAdaptador(actividadesValidas, id)
+                // Ordena las actividades válidas por fecha de finalización, de más pronto a más tardío
+                val actividadesOrdenadas = actividadesValidas.sortedBy { it.fechafin?.toDate() }
+
+                // Configura el adaptador con las actividades válidas y ordenadas
+                configurarAdaptador(actividadesOrdenadas, id.toString())
             } catch (e: Exception) {
-                val firestore = FireStore()
-                firestore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
                 Toast.makeText(this@PaginaActividadProfe, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                fireStore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")
             }
         }
     }
+
 
     // Método para filtrar y eliminar actividades pasadas
     private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>, num : Int): List<Actividad> {
@@ -134,7 +139,7 @@ class PaginaActividadProfe : AppCompatActivity() {
         reciclador.adapter = adaptadorProfe
     }
 
-    private fun configurarSpinner(idProfe : String) {
+    private fun configurarSpinner() {
 
         val adapter = object : ArrayAdapter<Pair<Int, Int>>(this, R.layout.spinner_item, options) {
             override fun getView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
@@ -160,7 +165,7 @@ class PaginaActividadProfe : AppCompatActivity() {
                 val selectedValue = options[position].second
                 // Haz algo con el valor seleccionado, por ejemplo, mostrarlo en un Toast
                 // Toast.makeText(this@MainActivity, "Valor seleccionado: $selectedValue", Toast.LENGTH_SHORT).show()
-                cargarActividades(idProfe, selectedValue)
+                cargarActividades(selectedValue)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
