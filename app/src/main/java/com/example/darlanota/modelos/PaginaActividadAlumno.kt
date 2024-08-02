@@ -42,14 +42,8 @@ class PaginaActividadAlumno : AppCompatActivity() {
 
         // Inicializa las vistas
         inicializarVistas()
-
-
-
         // Configura los listeners para las vistas
         configurarListeners()
-
-        // Carga las actividades del alumno
-        cargarActividades()
 
         configurarSpinner()
     }
@@ -92,7 +86,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
 
 
     // Método para cargar las actividades del alumno
-    private fun cargarActividades() {
+    private fun cargarActividades(num : Int) {
         val id = intent.getStringExtra("ID")
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -100,7 +94,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
 
                 // Filtra actividades pasadas y las elimina
-                val actividadesValidas = filtrarYEliminarActividadesPasadas(actividadesList)
+                val actividadesValidas = filtrarYEliminarActividadesPasadas(actividadesList, num)
 
                 // Configura el adaptador con las actividades válidas
                 configurarAdaptador(actividadesValidas, id.toString())
@@ -112,19 +106,28 @@ class PaginaActividadAlumno : AppCompatActivity() {
     }
 
     // Método para filtrar y eliminar actividades pasadas
-    private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>): List<Actividad> {
+    private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>, num: Int): List<Actividad> {
         return actividadesList.filter { actividad ->
             val fechaFin = actividad.fechafin?.toDate()
+
             if (fechaFin != null && fechaFin.before(Date())) {
+                // Eliminar actividades pasadas
                 withContext(Dispatchers.IO) {
                     fireStore.eliminarActividad(actividad.id)
                 }
                 false
             } else {
-                true
+                if (num == 1) {
+                    // Si el número es 0, incluir todas las actividades no pasadas
+                    true
+                } else {
+                    // Incluir solo las actividades que coincidan con el número de instrumento
+                    actividad.instrumento == num
+                }
             }
         }
     }
+
 
     // Método para configurar el adaptador del RecyclerView
     private fun configurarAdaptador(actividadesValidas: List<Actividad>, id: String) {
@@ -160,7 +163,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
                 val selectedValue = options[position].second
                 // Haz algo con el valor seleccionado, por ejemplo, mostrarlo en un Toast
                 // Toast.makeText(this@MainActivity, "Valor seleccionado: $selectedValue", Toast.LENGTH_SHORT).show()
-                println("Valor seleccionado: $selectedValue")
+                cargarActividades(selectedValue)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
