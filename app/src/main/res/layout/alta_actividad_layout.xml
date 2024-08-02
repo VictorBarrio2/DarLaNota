@@ -27,23 +27,23 @@
 
     <EditText
         android:id="@+id/et_descripcionAlta"
-        android:layout_width="335dp"
-        android:layout_height="215dp"
         style="@style/EditTextRounded"
+        android:layout_width="319dp"
+        android:layout_height="202dp"
         android:ems="10"
         android:gravity="top"
         android:inputType="textMultiLine|textVisiblePassword"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
         android:textAlignment="inherit"
         android:textColor="@color/edittext_text_selector"
         android:textColorHint="@color/edittext_hint_color"
         android:textSize="20sp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.447" />
+        app:layout_constraintVertical_bias="0.44" />
 
     <TextView
         android:id="@+id/textView"
@@ -148,4 +148,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.975"
         app:srcCompat="@drawable/logro" />
+
+    <Spinner
+        android:id="@+id/sp_altaActividad"
+        android:layout_width="104dp"
+        android:layout_height="61dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.95"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.045" />
 </androidx.constraintlayout.widget.ConstraintLayout>

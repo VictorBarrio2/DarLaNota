@@ -4,9 +4,12 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -17,10 +20,12 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.*
 import java.util.Calendar
+import kotlin.properties.Delegates
 
 class PaginaAltaActividad : AppCompatActivity() {
 
     // Declaración de variables
+    private var posSpinner: Int = 0
     private lateinit var btoSubirActividad: Button
     private lateinit var btoFecha: Button
     private lateinit var tvFecha: TextView
@@ -31,6 +36,15 @@ class PaginaAltaActividad : AppCompatActivity() {
     private lateinit var ivRanking: ImageView
     private lateinit var ivActividad: ImageView
     private lateinit var id: String
+    private lateinit var spinner: Spinner
+    private val options = listOf(
+        R.drawable.nota to 1,
+        R.drawable.piano to 2,
+        R.drawable.guitarra to 3,
+        R.drawable.bateria to 4,
+        R.drawable.canto to 5
+    )
+
 
     // Método onCreate, inicializa la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,9 +53,10 @@ class PaginaAltaActividad : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         id = intent.getStringExtra("ID") ?: ""
-
+        posSpinner = 1
         inicializarVistas()
         configurarListeners()
+        configurarSpinner()
     }
 
     // Inicializa las vistas
@@ -54,6 +69,7 @@ class PaginaAltaActividad : AppCompatActivity() {
         ivPerfil = findViewById(R.id.iv_perfilAltaAc)
         ivRanking = findViewById(R.id.iv_rankingAltaAc)
         ivActividad = findViewById(R.id.iv_actividadesAltaAc)
+        spinner = findViewById(R.id.sp_altaActividad)
     }
 
     // Configura los listeners para los botones y las imágenes
@@ -74,6 +90,7 @@ class PaginaAltaActividad : AppCompatActivity() {
         val titulo = etTitulo.text.toString().trim()
         val descripcion = etDescripcion.text.toString().trim()
         val fechaFin = fechaSeleccionada?.let { Timestamp(it.time) }
+        val instrumento = posSpinner
 
         if (titulo.isEmpty() || descripcion.isEmpty() || fechaFin == null) {
             Toast.makeText(this, "Por favor, completa todos los campos requeridos.", Toast.LENGTH_SHORT).show()
@@ -82,7 +99,8 @@ class PaginaAltaActividad : AppCompatActivity() {
                 descripcion = descripcion,
                 fechafin = fechaFin,
                 titulo = titulo,
-                id_profesor = intent.getStringExtra("ID") ?: ""
+                id_profesor = intent.getStringExtra("ID") ?: "",
+                instrumento = instrumento
             )
             CoroutineScope(Dispatchers.Main).launch {
                 try {
@@ -128,6 +146,40 @@ class PaginaAltaActividad : AppCompatActivity() {
             startActivity(Intent(this, PaginaActividadProfe::class.java).apply {
                 putExtra("ID", id)
             })
+        }
+    }
+    private fun configurarSpinner() {
+
+        val adapter = object : ArrayAdapter<Pair<Int, Int>>(this, R.layout.spinner_item, options) {
+            override fun getView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
+                val view = convertView ?: layoutInflater.inflate(R.layout.spinner_item, parent, false)
+                val imageView = view.findViewById<ImageView>(R.id.spinner_image)
+                imageView.setImageResource(options[position].first)
+                return view
+            }
+
+            override fun getDropDownView(position: Int, convertView: android.view.View?, parent: android.view.ViewGroup): android.view.View {
+                val view = convertView ?: layoutInflater.inflate(R.layout.spinner_dropdown_item, parent, false)
+                val imageView = view.findViewById<ImageView>(R.id.spinner_dropdown_image)
+                imageView.setImageResource(options[position].first)
+                return view
+            }
+        }
+
+        spinner.adapter = adapter
+
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+                // Obtén el valor asociado a la opción seleccionada
+                val selectedValue = options[position].second
+                // Haz algo con el valor seleccionado, por ejemplo, mostrarlo en un Toast
+                // Toast.makeText(this@MainActivity, "Valor seleccionado: $selectedValue", Toast.LENGTH_SHORT).show()
+                posSpinner = selectedValue
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Opcional: manejar el caso en el que no se seleccione ninguna opción
+            }
         }
     }
 }
