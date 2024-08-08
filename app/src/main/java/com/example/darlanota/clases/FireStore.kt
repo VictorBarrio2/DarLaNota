@@ -273,9 +273,12 @@ class FireStore {
             val rankingUsuarios = mutableListOf<Pair<String, Long>>()
 
             for (documento in usuariosSnapshot.documents) {
-                val nombre = documento.getString("nombre") ?: "Sin nombre"
-                val puntuacion = documento.getLong("puntuacion") ?: 0L
-                rankingUsuarios.add(Pair(nombre, puntuacion))
+                val tipo = documento.getString("tipo") ?: "alumno"
+                if(tipo.equals("alumno")){
+                    val nombre = documento.getString("nombre") ?: "Sin nombre"
+                    val puntuacion = documento.getLong("puntuacion") ?: 0L
+                    rankingUsuarios.add(Pair(nombre, puntuacion))
+                }
             }
 
             rankingUsuarios
@@ -321,7 +324,29 @@ class FireStore {
             "Error al cambiar la contraseña: ${e.localizedMessage}"
         }
     }
+    suspend fun reiniciarRanking() = withContext(Dispatchers.IO) {
+        try {
+            // Obtener la colección de usuarios
+            val usuariosCollection = db.collection("usuarios").get().await()
 
+            // Recorrer todos los documentos (alumnos)
+            for (document in usuariosCollection.documents) {
+                val idAlumno = document.id
+
+                // Reiniciar la puntuación del alumno a 0 o el valor que desees
+                db.collection("usuarios").document(idAlumno)
+                    .update("puntuacion", 0) // Cambia "0" por el valor predeterminado si es necesario
+                    .await()
+            }
+
+            // Puedes agregar aquí un log o un mensaje para confirmar que la operación fue exitosa
+            Log.d("Ranking", "El ranking de los alumnos ha sido reiniciado.")
+        } catch (e: Exception) {
+            // Maneja cualquier excepción que ocurra durante la operación
+            e.printStackTrace()
+            Log.e("Ranking", "Error al reiniciar el ranking: ${e.message}")
+        }
+    }
     suspend fun devolverPuntuacion(idAlumno: String): String? = withContext(Dispatchers.IO) {
         try {
             val doc = db.collection("usuarios").document(idAlumno).get().await()
