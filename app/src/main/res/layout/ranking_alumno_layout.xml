@@ -83,7 +83,7 @@
         app:srcCompat="@drawable/logro" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking1"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -95,7 +95,7 @@
         app:layout_constraintVertical_bias="0.747" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking2"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -107,7 +107,7 @@
         app:layout_constraintVertical_bias="0.672" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking3"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -119,7 +119,7 @@
         app:layout_constraintVertical_bias="0.593" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking4"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -131,7 +131,7 @@
         app:layout_constraintVertical_bias="0.516" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking5"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -143,7 +143,7 @@
         app:layout_constraintVertical_bias="0.44" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking6"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -155,7 +155,7 @@
         app:layout_constraintVertical_bias="0.364" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking7"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -167,7 +167,7 @@
         app:layout_constraintVertical_bias="0.284" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking8"
         android:layout_width="300dp"
         android:layout_height="44dp"
         android:background="@drawable/fondo_spinner"

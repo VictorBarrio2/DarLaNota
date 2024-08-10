@@ -17,7 +17,7 @@
         app:layout_constraintVertical_bias="0.714" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking2"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -28,7 +28,7 @@
         app:layout_constraintVertical_bias="0.638" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking3"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -39,7 +39,7 @@
         app:layout_constraintVertical_bias="0.559" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking4"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -50,7 +50,7 @@
         app:layout_constraintVertical_bias="0.483" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking5"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -61,7 +61,7 @@
         app:layout_constraintVertical_bias="0.408" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking6"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -72,7 +72,7 @@
         app:layout_constraintVertical_bias="0.33" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking7"
         android:layout_width="300dp"
         android:layout_height="45dp"
         android:background="@drawable/fondo_spinner"
@@ -157,7 +157,7 @@
         app:srcCompat="@drawable/reinicio" />
 
     <TextView
-        android:id="@+id/tv_fondoRanking"
+        android:id="@+id/tv_fondoRanking8"
         android:layout_width="300dp"
         android:layout_height="44dp"
         android:background="@drawable/fondo_spinner"
