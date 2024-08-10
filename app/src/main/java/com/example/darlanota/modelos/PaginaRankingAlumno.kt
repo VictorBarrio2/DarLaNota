@@ -15,6 +15,11 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private lateinit var et_1: TextView
     private lateinit var et_2: TextView
     private lateinit var et_3: TextView
+    private lateinit var et_4: TextView
+    private lateinit var et_5: TextView
+    private lateinit var et_6: TextView
+    private lateinit var et_7: TextView
+    private lateinit var et_8: TextView
     private lateinit var et_puntuacion: TextView
     private lateinit var et_posicion: TextView
 
@@ -48,6 +53,11 @@ class PaginaRankingAlumno : AppCompatActivity() {
         et_1 = findViewById(R.id.tv_primeraPosAl)
         et_2 = findViewById(R.id.tv_segundaPosAl)
         et_3 = findViewById(R.id.tv_terceraPosAl)
+        et_4 = findViewById(R.id.tv_cuartaPosAl)
+        et_5 = findViewById(R.id.tv_quintaPosAl)
+        et_6 = findViewById(R.id.tv_sextaPosAl)
+        et_7 = findViewById(R.id.tv_septimaPosAl)
+        et_8 = findViewById(R.id.tv_octavaPosAl)
         et_puntuacion = findViewById(R.id.tv_puntuacion)
         et_posicion = findViewById(R.id.tv_posicion)
 
@@ -97,7 +107,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
 
     // Método para actualizar las vistas con el ranking de usuarios
     private fun actualizarRanking(ranking: List<Pair<String, Long>>) {
-        val rankingViews = listOf(et_1, et_2, et_3)
+        val rankingViews = listOf(et_1, et_2, et_3, et_4, et_5, et_6, et_7, et_8)
 
         // Itera sobre cada TextView y establece el texto según el ranking o lo deja en blanco si no hay suficientes usuarios
         rankingViews.forEachIndexed { index, textView ->
