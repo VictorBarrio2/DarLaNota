@@ -132,15 +132,6 @@ class PaginaRankingProfe : AppCompatActivity() {
 
     }
 
-    // Método para cargar el ranking de usuarios desde Firestore
-    private fun cargarRanking() {
-        CoroutineScope(Dispatchers.Main).launch {
-            val ranking = withContext(Dispatchers.IO) { fireStore.obtenerRankingUsuarios() }
-            actualizarRanking(ranking)
-        }
-    }
-
-    // Método para actualizar las vistas con el ranking de usuarios
     private fun actualizarRanking(ranking: List<Pair<String, Long>>) {
         val rankingViews = listOf(et_1, et_2, et_3, et_4, et_5, et_6, et_7, et_8)
 
@@ -151,6 +142,15 @@ class PaginaRankingProfe : AppCompatActivity() {
             } else {
                 "" // Limpia el TextView si no hay suficientes entradas
             }
+        }
+    }
+
+    private fun cargarRanking() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val ranking = withContext(Dispatchers.IO) { fireStore.obtenerRankingUsuarios() }
+
+            // Actualizar el ranking y la posición/puntuación del usuario
+            actualizarRanking(ranking)
         }
     }
 }
