@@ -32,7 +32,7 @@ class PaginaRankingProfe : AppCompatActivity() {
 
     private lateinit var bto_cambiarRanking: Button
 
-    private lateinit var id: String
+    private lateinit var nick: String
 
     private val fireStore = FireStore()
 
@@ -44,7 +44,7 @@ class PaginaRankingProfe : AppCompatActivity() {
         inicializarVistas()
 
         // Obtener el ID del intent
-        id = intent.getStringExtra("ID") ?: ""
+        nick = intent.getStringExtra("NICK") ?: ""
 
         // Configurar listeners de los botones e imágenes
         configurarListeners()
@@ -76,7 +76,7 @@ class PaginaRankingProfe : AppCompatActivity() {
     private fun configurarListeners() {
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadProfe::class.java)
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             startActivity(intent)
         }
 
@@ -84,14 +84,14 @@ class PaginaRankingProfe : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaRankingProfe, PaginaPerfilProfe::class.java)
-                intent.putExtra("ID", id)
+                intent.putExtra("NICK", nick)
                 startActivity(intent)
             }
         }
 
         bto_cambiarRanking.setOnClickListener {
             val fragmentoNota = FragmentoNota()
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             fragmentoNota.show(supportFragmentManager, "fragmento_nota")
         }
 

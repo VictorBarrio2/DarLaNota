@@ -49,7 +49,7 @@ class AdaptadorProfe(private val profesorId: String, private val dataList: List<
         val intent = Intent(holder.itemView.context, PaginaCorregirActividad::class.java).apply {
             putExtra("ACTIVIDAD_ID", actividad.id)
             putExtra("TITULO", actividad.titulo)
-            putExtra("ID", profesorId)
+            putExtra("NICK", profesorId)
         }
         holder.itemView.context.startActivity(intent)
     }

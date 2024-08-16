@@ -43,13 +43,12 @@ class PaginaActividadProfe : AppCompatActivity() {
         inicializarVistas()
 
         // Obtiene el ID del intent
-        val id = intent.getStringExtra("ID") ?: ""
+        val id = intent.getStringExtra("NICK") ?: ""
 
         // Configura los listeners para las vistas
         configurarListeners(id)
 
         configurarSpinner()
-
     }
 
     // Método para inicializar las vistas
@@ -63,31 +62,31 @@ class PaginaActividadProfe : AppCompatActivity() {
     }
 
     // Método para configurar los listeners
-    private fun configurarListeners(id: String) {
+    private fun configurarListeners(nick: String) {
         ivRanking.setOnClickListener {
             startActivity(Intent(this, PaginaRankingProfe::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
 
         ivPerfil.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
                 val intent = Intent(this@PaginaActividadProfe, PaginaPerfilProfe::class.java)
-                intent.putExtra("ID", id)
+                intent.putExtra("NICK", nick)
                 startActivity(intent)
             }
         }
 
         btnSubirActividad.setOnClickListener {
             startActivity(Intent(this, PaginaAltaActividad::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
     }
 
     // Método para cargar las actividades del profesor
     private fun cargarActividades(num: Int) {
-        val id = intent.getStringExtra("ID")
+        val id = intent.getStringExtra("NICK")
 
         CoroutineScope(Dispatchers.Main).launch {
             try {

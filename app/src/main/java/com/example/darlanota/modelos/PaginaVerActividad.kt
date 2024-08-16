@@ -32,7 +32,7 @@ class PaginaVerActividad : AppCompatActivity() {
     private lateinit var iconoActividades: ImageView
     private lateinit var iv_logro: ImageView
     private lateinit var iconoRanking: ImageView
-    private lateinit var id: String
+    private lateinit var nick: String
     private lateinit var id_actividad: String
     private var entregado: Boolean = false
 
@@ -64,7 +64,7 @@ class PaginaVerActividad : AppCompatActivity() {
         botonSubirVideo = findViewById(R.id.bto_subirVideo)
 
         // Obtener los datos pasados desde la actividad anterior
-        id = intent.getStringExtra("ID").orEmpty()
+        nick = intent.getStringExtra("NICK").orEmpty()
         id_actividad = intent.getStringExtra("ACTIVIDAD_ID").orEmpty()
         textoTitulo.text = intent.getStringExtra("TITULO")
         textoDescripcion.text = intent.getStringExtra("DESCRIPCION")
@@ -84,7 +84,7 @@ class PaginaVerActividad : AppCompatActivity() {
         iconoPerfil.setOnClickListener { navegarA(PaginaPerfilAlumno::class.java) }
         iv_logro.setOnClickListener {
             startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
     }
@@ -92,7 +92,7 @@ class PaginaVerActividad : AppCompatActivity() {
     // Método para navegar a otra actividad pasando el ID del usuario
     private fun navegarA(destino: Class<*>) {
         val intent = Intent(this, destino)
-        intent.putExtra("ID", id)
+        intent.putExtra("NICK", nick)
         startActivity(intent)
     }
 
@@ -114,12 +114,12 @@ class PaginaVerActividad : AppCompatActivity() {
                 val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
                 val actividadSnapshot = actividadRef.get().await()
                 val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
-                val entregaMap = entregas.find { it["idAlumno"] == id }
+                val entregaMap = entregas.find { it["idAlumno"] == nick }
 
                 // Verificar si ya existe una entrega
                 if (entregaMap != null) {
                     val entrega = Entrega(
-                        idAlumno = entregaMap["idAlumno"] as String,
+                        nickAlumno = entregaMap["idAlumno"] as String,
                         video = entregaMap["video"] as String,
                         calificacion = (entregaMap["calificacion"] as Long).toInt()
                     )
@@ -168,21 +168,37 @@ class PaginaVerActividad : AppCompatActivity() {
                 val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
                 val actividadSnapshot = actividadRef.get().await()
                 val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
-                val entrega = entregas.find { it["idAlumno"] == id }
+                val entrega = entregas.find { it["nickAlumno"] == nick }
                 val videoAntiguoPath = entrega?.get("video") as? String
 
                 // Eliminar video antiguo si existe
                 if (!videoAntiguoPath.isNullOrEmpty()) {
-                    val storageRef = FirebaseStorage.getInstance().getReference(videoAntiguoPath)
-                    storageRef.delete().await()
+                    try {
+                        val storageRefAntiguo = FirebaseStorage.getInstance().reference.child(videoAntiguoPath)
+                        storageRefAntiguo.delete().await()
+                        Log.d("Vido", "$videoAntiguoPath")
+                        Log.d("UpdateVideo", "Video antiguo eliminado exitosamente.")
+                    } catch (deleteException: Exception) {
+                        Log.e("UpdateVideo", "Error al eliminar video antiguo: ${deleteException.localizedMessage}")
+                    }
                 }
 
                 // Subir el nuevo video a Firebase Storage
-                val storageRefNuevo = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
-                storageRefNuevo.putFile(uriVideo).await()
+                try {
+                    val storageRefNuevo = FirebaseStorage.getInstance().reference.child(nuevoVideoPath)
+                    storageRefNuevo.putFile(uriVideo).await()
+                    Log.d("UpdateVideo", "Nuevo video subido exitosamente.")
+                } catch (uploadException: Exception) {
+                    throw RuntimeException("Error al subir nuevo video: ${uploadException.localizedMessage}")
+                }
 
                 // Actualizar la entrega en Firestore
-                firestoreService.actualizarVideoEntrega(id_actividad, id, nuevoVideoPath)
+                try {
+                    firestoreService.actualizarVideoEntrega(id_actividad, nick, nuevoVideoPath)
+                    Log.d("UpdateVideo", "Referencia del video actualizada en Firestore.")
+                } catch (updateException: Exception) {
+                    throw RuntimeException("Error al actualizar referencia del video en Firestore: ${updateException.localizedMessage}")
+                }
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(applicationContext, "Entrega actualizada", Toast.LENGTH_SHORT).show()
@@ -203,7 +219,7 @@ class PaginaVerActividad : AppCompatActivity() {
 
         // Subir video a Firebase Storage y actualizar Firestore
         storageRef.putFile(uriVideo).addOnSuccessListener {
-            val nuevaEntrega = Entrega(idAlumno = id, video = videoPath, calificacion = -1)
+            val nuevaEntrega = Entrega(nickAlumno = nick, video = videoPath, calificacion = -1)
             nuevaEntrega.subirEntregaFirestore(id_actividad)
             entregado = true
             textoEntregado.text = "Entregado: Sí"

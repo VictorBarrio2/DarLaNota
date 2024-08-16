@@ -60,11 +60,11 @@ class PaginaActividadAlumno : AppCompatActivity() {
 
     // Método para configurar los listeners
     private fun configurarListeners() {
-        val id = intent.getStringExtra("ID")
+        val nick = intent.getStringExtra("NICK")
 
         iv_ranking.setOnClickListener {
             val intent = Intent(this, PaginaRankingAlumno::class.java)
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             startActivity(intent)
         }
 
@@ -72,14 +72,14 @@ class PaginaActividadAlumno : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaActividadAlumno, PaginaPerfilAlumno::class.java)
-                intent.putExtra("ID", id)  // Asegura que el ID se pase correctamente
+                intent.putExtra("NICK", nick)  // Asegura que el ID se pase correctamente
                 startActivity(intent)
             }
         }
 
         iv_logro.setOnClickListener {
             startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
     }
@@ -87,7 +87,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
 
     // Método para cargar las actividades del alumno
     private fun cargarActividades(num: Int) {
-        val id = intent.getStringExtra("ID")
+        val nick = intent.getStringExtra("NICK")
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
@@ -100,7 +100,7 @@ class PaginaActividadAlumno : AppCompatActivity() {
                 val actividadesOrdenadas = actividadesValidas.sortedBy { it.fechafin?.toDate() }
 
                 // Configura el adaptador con las actividades válidas y ordenadas
-                configurarAdaptador(actividadesOrdenadas, id.toString())
+                configurarAdaptador(actividadesOrdenadas, nick.toString())
             } catch (e: Exception) {
                 Toast.makeText(this@PaginaActividadAlumno, "Error al cargar actividades: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 fireStore.registrarIncidencia("Error al cargar actividades: ${e.localizedMessage}")

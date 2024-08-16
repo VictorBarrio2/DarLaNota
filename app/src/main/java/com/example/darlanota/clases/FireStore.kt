@@ -16,6 +16,8 @@ import java.util.Date
 import java.io.File
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+
 class FireStore {
     val db = FirebaseFirestore.getInstance()
     val storage = FirebaseStorage.getInstance()
@@ -76,18 +78,36 @@ class FireStore {
         }
     }
 
-    suspend fun actualizarVideoEntrega(idActividad: String, idAlumno: String, nuevoVideo: String) {
+    suspend fun actualizarVideoEntrega(idActividad: String, nickAlumno: String, nuevoVideo: String) {
         val actividadRef = db.collection("actividades").document(idActividad)
-        db.runTransaction { transaction ->
-            val actividadSnapshot = transaction.get(actividadRef)
-            val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
-            val entregaIndex = entregas.indexOfFirst { it["idAlumno"] == idAlumno }
-            if (entregaIndex != -1) {
-                entregas[entregaIndex]["video"] = nuevoVideo
-                transaction.update(actividadRef, "entregas", entregas)
-            }
-        }.await()
+        try {
+            db.runTransaction { transaction ->
+                val actividadSnapshot = transaction.get(actividadRef)
+                if (actividadSnapshot.exists()) {
+                    val entregas = actividadSnapshot.get("entregas") as? MutableList<Map<String, Any>> ?: mutableListOf()
+                    Log.d("Firestore", "Entregas encontradas: $entregas")
+
+                    val entregaIndex = entregas.indexOfFirst { it["nickAlumno"] == nickAlumno }
+                    if (entregaIndex != -1) {
+                        val entregaActualizada = entregas[entregaIndex].toMutableMap()
+                        entregaActualizada["video"] = nuevoVideo
+                        entregas[entregaIndex] = entregaActualizada
+                        transaction.update(actividadRef, "entregas", entregas)
+                        Log.d("Firestore", "Entrega actualizada para el alumno: $nickAlumno")
+                    } else {
+                        throw RuntimeException("Entrega no encontrada para el alumno: $nickAlumno")
+                    }
+                } else {
+                    throw RuntimeException("Actividad no encontrada: $idActividad")
+                }
+            }.await()
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al actualizar video en Firestore: ${e.localizedMessage}", e)
+            throw RuntimeException("Error al actualizar video en Firestore: ${e.localizedMessage}")
+        }
     }
+
+
     suspend fun registrarIncidencia(descripcion: String) {
         val nuevaIncidencia = Incidencia(
             fechafin = Timestamp(Date()),
@@ -118,13 +138,30 @@ class FireStore {
         }
     }
 
-    suspend fun incrementarPuntuacionUsuario(idUsuario: String, valorAIncrementar: Int?) {
+    suspend fun incrementarPuntuacionUsuario(nombreUsuario: String, valorAIncrementar: Int?) {
         try {
-            val referenciaUsuario = db.collection("usuarios").document(idUsuario)
+            // Asegúrate de que valorAIncrementar no sea nulo
+            val incremento = valorAIncrementar ?: 0
+
+            // Primero, obtenemos el documento del usuario por su nombre
+            val querySnapshot = db.collection("usuarios")
+                .whereEqualTo("nombre", nombreUsuario)
+                .get()
+                .await()
+
+            if (querySnapshot.isEmpty) {
+                registrarIncidencia("No se encontró un usuario con el nombre: $nombreUsuario")
+                throw RuntimeException("No se encontró un usuario con el nombre: $nombreUsuario")
+            }
+
+            val documentoUsuario = querySnapshot.documents[0] // Asumimos que el nombre es único y solo hay un documento
+            val referenciaUsuario = documentoUsuario.reference
+
+            // Luego, ejecutamos la transacción para incrementar la puntuación
             db.runTransaction { transaccion ->
                 val instantanea = transaccion.get(referenciaUsuario)
                 val puntuacionActual = instantanea.getLong("puntuacion") ?: 0
-                transaccion.update(referenciaUsuario, "puntuacion", puntuacionActual + valorAIncrementar!!)
+                transaccion.update(referenciaUsuario, "puntuacion", puntuacionActual + incremento)
             }.await()
         } catch (e: Exception) {
             registrarIncidencia("Error al incrementar la puntuación: ${e.message}")
@@ -132,63 +169,75 @@ class FireStore {
         }
     }
 
-    suspend fun decrementarPuntuacionAlumno(idUsuario: String, valorDecremento: Int) {
+
+
+    suspend fun decrementarPuntuacionAlumno(nombreUsuario: String, valorDecremento: Int) {
         try {
-            val referenciaUsuario = db.collection("usuarios").document(idUsuario)
-            db.runTransaction { transaccion ->
-                val instantanea = transaccion.get(referenciaUsuario)
-                val puntuacionActual = instantanea.getLong("puntuacion") ?: 0
-                val nuevaPuntuacion = (puntuacionActual - valorDecremento).coerceAtLeast(0)  // Evita valores negativos
-                transaccion.update(referenciaUsuario, "puntuacion", nuevaPuntuacion)
-            }.await()
+            // Primero, obtenemos el documento del usuario por su nombre
+            val querySnapshot = db.collection("usuarios")
+                .whereEqualTo("nombre", nombreUsuario)
+                .get()
+                .await()
+
+            if (!querySnapshot.isEmpty) {
+                val documentoUsuario = querySnapshot.documents[0] // Asumimos que el nombre es único y solo hay un documento
+                val referenciaUsuario = documentoUsuario.reference
+
+                // Luego, ejecutamos la transacción para decrementar la puntuación
+                db.runTransaction { transaccion ->
+                    val instantanea = transaccion.get(referenciaUsuario)
+                    val puntuacionActual = instantanea.getLong("puntuacion") ?: 0
+                    // Calculamos la nueva puntuación, asegurándonos de que no sea negativa
+                    val nuevaPuntuacion = (puntuacionActual - valorDecremento).coerceAtLeast(0)
+                    transaccion.update(referenciaUsuario, "puntuacion", nuevaPuntuacion)
+                }.await()
+            } else {
+                registrarIncidencia("No se encontró un usuario con el nombre: $nombreUsuario")
+                throw RuntimeException("No se encontró un usuario con el nombre: $nombreUsuario")
+            }
         } catch (e: Exception) {
             registrarIncidencia("Error al decrementar la puntuación: ${e.message}")
             throw RuntimeException("Error al decrementar la puntuación: ${e.message}")
         }
     }
-
-
-    suspend fun obtenerIdPorNombre(nombreAlumno: String): String? {
+    suspend fun actualizarCalificacionEntrega(idActividad: String, nombreAlumno: String, nuevaCalificacion: Int) = withContext(Dispatchers.IO) {
         try {
-            // Realizar una consulta a la colección "usuarios"
-            val resultado = db.collection("usuarios")
+            // Obtener el documento del alumno por su nombre
+            val alumnoQuerySnapshot = db.collection("usuarios")
                 .whereEqualTo("nombre", nombreAlumno)
                 .get()
                 .await()
 
-            // Comprobar si se encontraron documentos
-            if (resultado.documents.isNotEmpty()) {
-                // Devolver el ID del primer documento que coincida con el nombre
-                return resultado.documents.first().id
-            } else {
-                // Devolver null si no se encuentra ningún documento
-                return null
+            if (alumnoQuerySnapshot.isEmpty) {
+                Log.e("Firestore", "No se encontró un usuario con el nombre: $nombreAlumno")
+                return@withContext
             }
-        } catch (e: Exception) {
-            registrarIncidencia("Error al obtener la ID por nombre: ${e.message}")
-            throw RuntimeException("Error al obtener la ID por nombre: ${e.message}")
-        }
-    }
 
-    suspend fun actualizarCalificacionEntrega(idActividad: String, idAlumno: String, nuevaCalificacion: Int) = withContext(Dispatchers.IO) {
-        try {
+            val idAlumno = alumnoQuerySnapshot.documents[0].id
+
+            // Referencia al documento de la actividad en Firestore
             val actividadRef = db.collection("actividades").document(idActividad)
             db.runTransaction { transaction ->
+                // Obtener el documento de la actividad
                 val actividadSnapshot = transaction.get(actividadRef)
-                if (actividadSnapshot.exists()) {
-                    val entregas = actividadSnapshot.get("entregas") as? MutableList<Map<String, Any>> ?: mutableListOf()
-                    val entregaIndex = entregas.indexOfFirst { it["idAlumno"] == idAlumno }
-                    if (entregaIndex != -1) {
-                        val entregaActualizada = entregas[entregaIndex].toMutableMap()
-                        entregaActualizada["calificacion"] = nuevaCalificacion
-                        entregas[entregaIndex] = entregaActualizada
-                        transaction.update(actividadRef, "entregas", entregas)
-                    } else {
-                        Log.e("Firestore", "No se encontró la entrega del alumno: $idAlumno")
-                    }
-                } else {
+                if (!actividadSnapshot.exists()) {
                     Log.e("Firestore", "No se encontró la actividad: $idActividad")
+                    return@runTransaction
                 }
+
+                // Obtener y actualizar las entregas
+                val entregas = actividadSnapshot.get("entregas") as? MutableList<Map<String, Any>> ?: mutableListOf()
+                val entregaIndex = entregas.indexOfFirst { it["nickAlumno"] == nombreAlumno }
+                if (entregaIndex == -1) {
+                    Log.e("Firestore", "No se encontró la entrega del alumno: $nombreAlumno")
+                    return@runTransaction
+                }
+
+                // Actualizar la calificación de la entrega
+                val entregaActualizada = entregas[entregaIndex].toMutableMap()
+                entregaActualizada["calificacion"] = nuevaCalificacion
+                entregas[entregaIndex] = entregaActualizada
+                transaction.update(actividadRef, "entregas", entregas)
             }.await()
         } catch (e: Exception) {
             Log.e("Firestore", "Error al actualizar la calificación: ${e.localizedMessage}", e)
@@ -198,18 +247,33 @@ class FireStore {
 
     suspend fun obtenerRutaVideo(idActividad: String, idAlumno: String): String? = withContext(Dispatchers.IO) {
         try {
+            // Obtén el documento de la actividad desde Firestore
             val actividadDoc = db.collection("actividades").document(idActividad).get().await()
-            val entregas = actividadDoc.get("entregas") as List<Map<String, Any>>?
-            val entrega = entregas?.find { it["idAlumno"] == idAlumno }
-            val videoPath = entrega?.get("video") as String?
-            Log.d("Firestore", "Video path obtenida: $videoPath")
+
+            // Obtén la lista de entregas desde el documento de la actividad
+            val entregas = actividadDoc.get("entregas") as? List<Map<String, Any>>
+
+            // Encuentra la entrega correspondiente al alumno especificado
+            val entrega = entregas?.find { it["nickAlumno"] == idAlumno }
+
+            // Obtén la ruta del video de la entrega, si existe
+            val videoPath = entrega?.get("video") as? String
+
+            // Registra la ruta del video en los logs para depuración
+            Log.d("Firestore", "Ruta del video obtenida: $videoPath")
+
             videoPath
         } catch (e: Exception) {
+            // En caso de excepción, registra un error en los logs
             Log.e("Firestore", "Error al obtener la ruta del video: ${e.localizedMessage}", e)
+
+            // Registra la incidencia en el sistema
             registrarIncidencia("Error al obtener la ruta del video: ${e.localizedMessage}")
+
             null
         }
     }
+
 
     suspend fun descargarVideo(context: PaginaCorregirActividad, videoPath: String) = withContext(Dispatchers.IO) {
         try {
@@ -253,17 +317,55 @@ class FireStore {
         }
     }
 
-    // Método para obtener el nombre del alumno
-
     suspend fun eliminarActividad(idActividad: String) = withContext(Dispatchers.IO) {
         try {
+            // Obtener el documento de la actividad
+            val actividadDoc = db.collection("actividades").document(idActividad).get().await()
+
+            // Obtener la lista de entregas asociadas a la actividad
+            val entregas = actividadDoc.get("entregas") as? List<Map<String, Any>>
+
+            // Iterar sobre cada entrega para eliminar el video correspondiente
+            entregas?.forEach { entrega ->
+                val videoPath = entrega["video"] as? String
+                if (videoPath != null) {
+                    try {
+                        // Eliminar el video de la ruta en el almacenamiento
+                        eliminarVideoDeStorage(videoPath)
+                        Log.d("Firestore", "Video eliminado: $videoPath")
+                    } catch (e: Exception) {
+                        Log.e("Firestore", "Error al eliminar el video: ${e.localizedMessage}", e)
+                        registrarIncidencia("Error al eliminar el video: ${e.localizedMessage}")
+                    }
+                }
+            }
+
+            // Eliminar el documento de la actividad en Firestore
             db.collection("actividades").document(idActividad).delete().await()
             Log.d("Firestore", "Actividad eliminada correctamente")
         } catch (e: Exception) {
+            // Manejar cualquier error que ocurra durante el proceso
             registrarIncidencia("Error al eliminar la actividad: ${e.localizedMessage}")
             Log.e("Firestore", "Error al eliminar la actividad: ${e.localizedMessage}", e)
         }
     }
+
+    private suspend fun eliminarVideoDeStorage(videoPath: String) {
+        try {
+            val storageRef = if (videoPath.startsWith("https://")) {
+                Firebase.storage.getReferenceFromUrl(videoPath)
+            } else {
+                Firebase.storage.reference.child(videoPath)
+            }
+            storageRef.delete().await()
+            Log.d("Firestore", "Video eliminado: $videoPath")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al eliminar el video: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al eliminar el video: ${e.localizedMessage}")
+        }
+    }
+
+
 
     suspend fun obtenerRankingUsuarios(): List<Pair<String, Long>> = withContext(Dispatchers.IO) {
         try {
@@ -301,29 +403,33 @@ class FireStore {
         }
     }
 
-    suspend fun cambiarContrasenaUsuario(nuevaContrasena: String) = withContext(Dispatchers.IO) {
+
+    suspend fun cambiarContrasenaUsuario(nuevaContrasena: String, nick: String) = withContext(Dispatchers.IO) {
         try {
-            val usuario = Firebase.auth.currentUser // Obtiene el usuario actualmente autenticado
+            // Obtener referencia a la colección de usuarios
+            val usuariosRef = db.collection("usuarios")
 
-            usuario?.let {
-                // Actualizar la contraseña en Firebase Auth
-                it.updatePassword(nuevaContrasena).await()
+            // Buscar el documento del usuario con el nick dado
+            val querySnapshot = usuariosRef.whereEqualTo("nick", nick).get().await()
+            if (querySnapshot.isEmpty) {
+                throw RuntimeException("Usuario con nick $nick no encontrado.")
+            }
 
-                // Actualizar la contraseña en Firestore
-                val usuarioRef = db.collection("usuarios").document(it.uid)
-                db.runTransaction { transaction ->
-                    transaction.update(usuarioRef, "contrasena", nuevaContrasena)
-                }.await()
+            // Suponiendo que hay un único usuario con ese nick
+            val usuarioDoc = querySnapshot.documents.first()
 
-                Log.d("Firestore", "Contraseña actualizada correctamente para el usuario: ${it.uid}")
-                "Contraseña actualizada exitosamente"
-            } ?: throw Exception("No hay usuario autenticado")
+            // Actualizar la contraseña
+            usuarioDoc.reference.update("contraseña", nuevaContrasena).await()
+
+            Log.d("Firestore", "Contraseña actualizada exitosamente para el usuario: $nick")
+
         } catch (e: Exception) {
             registrarIncidencia("Error al cambiar la contraseña: ${e.localizedMessage}")
             Log.e("Firestore", "Error al cambiar la contraseña: ${e.localizedMessage}", e)
-            "Error al cambiar la contraseña: ${e.localizedMessage}"
+            throw RuntimeException("Error al cambiar la contraseña: ${e.localizedMessage}")
         }
     }
+
     suspend fun reiniciarRanking() = withContext(Dispatchers.IO) {
         try {
             // Obtener la colección de usuarios
@@ -365,7 +471,7 @@ class FireStore {
 
     suspend fun obtenerCalificacion(idActividad: String, idAlumno: String): Int? {
         val actividad = cargarActividadCompleta(idActividad)
-        return actividad.entregas.find { it.idAlumno == idAlumno }?.calificacion
+        return actividad.entregas.find { it.nickAlumno == idAlumno }?.calificacion
     }
 
     suspend fun cargarActividadCompleta(idActividad: String): Actividad {
@@ -373,6 +479,28 @@ class FireStore {
         return doc.toObject(Actividad::class.java) ?: Actividad()
     }
 
+    suspend fun obtenerNombresDeEntregas(idActividad: String): List<String> = withContext(Dispatchers.IO) {
+        try {
+            // Accedemos al documento de la actividad
+            val actividadDoc = db.collection("actividades").document(idActividad).get().await()
 
+            // Verificamos si el documento existe
+            if (actividadDoc.exists()) {
+                // Obtenemos la lista de entregas
+                val entregas = actividadDoc.get("entregas") as? List<Map<String, Any>> ?: emptyList()
+
+                // Mapeamos cada entrega al campo "nickAlumno" (nombre del alumno)
+                entregas.mapNotNull { it["nickAlumno"] as? String }
+            } else {
+                Log.e("Firestore", "Actividad no encontrada: $idActividad")
+                emptyList() // Retorna una lista vacía si la actividad no existe
+            }
+        } catch (e: Exception) {
+            // En caso de error, registra la incidencia y retorna una lista vacía
+            registrarIncidencia("Error al obtener nombres de entregas: ${e.localizedMessage}")
+            Log.e("Firestore", "Error al obtener nombres de entregas: ${e.localizedMessage}", e)
+            emptyList()
+        }
+    }
 
 }

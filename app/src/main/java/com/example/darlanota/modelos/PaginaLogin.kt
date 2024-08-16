@@ -13,13 +13,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.darlanota.R
 import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.util.Base64
+import android.util.Log
+import kotlinx.coroutines.withContext
 import java.security.Key
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -29,21 +30,17 @@ private const val CLAVE = "claveSegura12345"
 
 class PaginaLogin : AppCompatActivity() {
 
-    // Declaración de variables UI y Firebase
     private lateinit var etNick: EditText
     private lateinit var etContra: EditText
     private lateinit var btoInicioSesion: Button
     private lateinit var btoRegistro: Button
     private lateinit var cbInicioAutomatico: CheckBox
-    private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var sharedPreferences: SharedPreferences
 
-    // Método principal que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicializar sharedPreferences
         sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
 
         aplicarTemaGuardado()
@@ -52,24 +49,19 @@ class PaginaLogin : AppCompatActivity() {
         if (guardarCredenciales) {
             val nick = sharedPreferences.getString("nick", "")
             val contra = sharedPreferences.getString("contraseña", "")
-            val check = true
-            iniciarSesion(nick, contra)
+            if (!nick.isNullOrEmpty() && !contra.isNullOrEmpty()) {
+                iniciarSesion(nick, contra)
+            }
         }
         setContentView(R.layout.login_layout)
         FirebaseApp.initializeApp(this)
 
-        // Inicialización de Firebase Auth y Firestore
-        auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // Inicializar las vistas
         inicializarVistas()
-
-        // Cargar credenciales si están guardadas
         cargarCredenciales()
     }
 
-    // Método para inicializar las vistas
     private fun inicializarVistas() {
         etNick = findViewById(R.id.et_nick)
         etContra = findViewById(R.id.et_contra)
@@ -78,79 +70,60 @@ class PaginaLogin : AppCompatActivity() {
         cbInicioAutomatico = findViewById(R.id.cb_guardarSesion)
     }
 
-    // Método para cargar credenciales guardadas
     private fun cargarCredenciales() {
-        // Configurar el listener para el botón de inicio de sesión
         btoInicioSesion.setOnClickListener {
-            val email = etNick.text.toString().trim()
+            val nick = etNick.text.toString().trim()
             val contra = etContra.text.toString().trim()
-            iniciarSesion(email, contra)
+            iniciarSesion(nick, contra)
         }
 
-        // Configurar el listener para el botón de registro
         btoRegistro.setOnClickListener {
             startActivity(Intent(this, PaginaRegistro::class.java))
         }
     }
 
-    // Método para iniciar sesión
-    private fun iniciarSesion(email: String?, contra: String?) {
-
-        if (email.isNullOrEmpty() || contra.isNullOrEmpty()) {
+    private fun iniciarSesion(nick: String, contra: String) {
+        if (nick.isEmpty() || contra.isEmpty()) {
             Toast.makeText(this, "Por favor, complete todos los campos.", Toast.LENGTH_SHORT).show()
             return
         }
+
         val contraCifrada = cifrar(contra)
-        auth.signInWithEmailAndPassword(email, contraCifrada)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    guardarCredenciales(email, contraCifrada)
-                    determinarTipoUsuarioYRedirigir(task.result?.user?.uid ?: "")
+        Log.d("Debug", "Contraseña ingresada: $contra")
+        Log.d("Debug", "Contraseña cifrada: $contraCifrada")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val query = db.collection("usuarios")
+                    .whereEqualTo("nombre", nick)
+                    .whereEqualTo("contrasena", contraCifrada)
+                    .get()
+                    .await()
+
+                Log.d("Debug", "Número de documentos encontrados: ${query.size()}")
+
+                if (query.isEmpty) {
+                    withContext(Dispatchers.Main) {
+                        mostrarAlerta("Error de inicio de sesión", "Nombre de usuario o contraseña incorrectos.")
+                    }
                 } else {
-                    mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${task.exception?.localizedMessage}")
+                    val usuario = query.documents.first()
+                    val id = usuario.id
+                    withContext(Dispatchers.Main) {
+                        guardarCredenciales(nick, contraCifrada)
+                    }
+                    determinarTipoUsuarioYRedirigir(id, nick)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    mostrarAlerta("Error de inicio de sesión", "No se pudo iniciar sesión: ${e.localizedMessage}")
                 }
             }
-    }
-
-    // Método para guardar credenciales
-    private fun guardarCredenciales(email: String, contra: String) {
-        if (cbInicioAutomatico.isChecked) {
-            sharedPreferences.edit().apply {
-                putBoolean("guardar_credenciales", true)
-                putString("nick", email)
-                putString("contraseña", contra) // Consider encrypting the password before storing it
-                apply()
-            }
-        } else {
-            sharedPreferences.edit().clear().apply()
         }
     }
 
-    // Método para determinar el tipo de usuario y redirigir a la página correspondiente
-    private fun determinarTipoUsuarioYRedirigir(id: String) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val documento = db.collection("usuarios").document(id).get().await()
-            if (!documento.exists()) {
-                mostrarAlerta("Error de inicio de sesión", "Usuario no encontrado en la base de datos.")
-                return@launch
-            }
 
-            val tipoUsuario = documento.getString("tipo")
-            val intent = when (tipoUsuario) {
-                "alumno" -> Intent(this@PaginaLogin, PaginaActividadAlumno::class.java)
-                "profesor" -> Intent(this@PaginaLogin, PaginaActividadProfe::class.java)
-                else -> {
-                    mostrarAlerta("Error de inicio de sesión", "Tipo de usuario desconocido.")
-                    return@launch
-                }
-            }
-            intent.putExtra("ID", id)
-            startActivity(intent)
-            finish()
-        }
-    }
 
-    // Método para mostrar una alerta
     private fun mostrarAlerta(titulo: String, mensaje: String) {
         AlertDialog.Builder(this).apply {
             setTitle(titulo)
@@ -161,27 +134,64 @@ class PaginaLogin : AppCompatActivity() {
         }
     }
 
-    // Método para aplicar el tema guardado en las preferencias
+
+    private fun guardarCredenciales(nick: String, contra: String) {
+        if (cbInicioAutomatico.isChecked) {
+            sharedPreferences.edit().apply {
+                putBoolean("guardar_credenciales", true)
+                putString("nick", nick)
+                putString("contrasena", contra)
+                apply()
+            }
+        } else {
+            sharedPreferences.edit().clear().apply()
+        }
+    }
+
+    private fun determinarTipoUsuarioYRedirigir(id: String, nombre: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val documento = db.collection("usuarios").document(id).get().await()
+                if (!documento.exists()) {
+                    mostrarAlerta("Error de inicio de sesión", "Usuario no encontrado en la base de datos.")
+                    return@launch
+                }
+
+                val tipoUsuario = documento.getString("tipo")
+                val intent = when (tipoUsuario) {
+                    "alumno" -> Intent(this@PaginaLogin, PaginaActividadAlumno::class.java)
+                    "profesor" -> Intent(this@PaginaLogin, PaginaActividadProfe::class.java)
+                    else -> {
+                        mostrarAlerta("Error de inicio de sesión", "Tipo de usuario desconocido.")
+                        return@launch
+                    }
+                }
+                intent.putExtra("NICK", nombre)
+                startActivity(intent)
+                finish()
+            } catch (e: Exception) {
+                mostrarAlerta("Error", "No se pudo determinar el tipo de usuario: ${e.localizedMessage}")
+            }
+        }
+    }
+
     private fun aplicarTemaGuardado() {
         val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
         val esTemaOscuro = prefs.getBoolean("tema_oscuro", false)
-        if (esTemaOscuro) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        }
+        AppCompatDelegate.setDefaultNightMode(if (esTemaOscuro) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
     }
 
     private fun cifrar(dato: String): String {
         val clave = generarClave()
         val cifrador = Cipher.getInstance(ALGORITMO)
         cifrador.init(Cipher.ENCRYPT_MODE, clave)
-        val valorCifrado = cifrador.doFinal(dato.toByteArray())
-        return Base64.encodeToString(valorCifrado, Base64.DEFAULT)
+        val valorCifrado = cifrador.doFinal(dato.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(valorCifrado, Base64.NO_WRAP)
     }
 
-    // Método para generar una clave de cifrado
+
     private fun generarClave(): Key {
-        return SecretKeySpec(CLAVE.toByteArray(), ALGORITMO)
+        return SecretKeySpec(CLAVE.toByteArray(Charsets.UTF_8), ALGORITMO)
     }
+
 }

@@ -8,7 +8,7 @@ import com.google.firebase.Timestamp
 import java.util.Date
 
 data class Entrega(
-    var idAlumno: String = "",
+    var nickAlumno: String = "",
     var video: String = "",
     var calificacion: Int = -1
 ) {

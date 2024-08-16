@@ -36,7 +36,7 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private lateinit var imagenTema: ImageView
     private lateinit var etContra: EditText
     private lateinit var tvNombre: TextView
-    private lateinit var id: String
+    private lateinit var nick: String
     private lateinit var fireStore: FireStore
 
     // Método que se ejecuta al crear la actividad
@@ -48,7 +48,7 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         // Obtención del ID del intent
-        id = intent.getStringExtra("ID") ?: "DefaultID"
+        nick = intent.getStringExtra("NICK") ?: "DefaultID"
 
         // Inicialización de las vistas de la actividad
         inicializarVistas()
@@ -80,7 +80,7 @@ class PaginaPerfilAlumno : AppCompatActivity() {
     private fun cargarDatosUsuario() {
         CoroutineScope(Dispatchers.Main).launch {
             // Obtención del nombre del usuario desde Firestore
-            val nombre = fireStore.obtenerNombreUsuario(id)
+            val nombre = nick
             // Establecimiento del nombre en el TextView correspondiente
             tvNombre.text = nombre ?: "Nombre no disponible"
         }
@@ -96,12 +96,12 @@ class PaginaPerfilAlumno : AppCompatActivity() {
 
         // Manejador de evento para la imagen de actividades
         ivActividades.setOnClickListener {
-            startActivity(Intent(this, PaginaActividadAlumno::class.java).also { it.putExtra("ID", id) })
+            startActivity(Intent(this, PaginaActividadAlumno::class.java).also { it.putExtra("NICK", nick) })
         }
 
         // Manejador de evento para la imagen de ranking
         ivRanking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingAlumno::class.java).also { it.putExtra("ID", id) })
+            startActivity(Intent(this, PaginaRankingAlumno::class.java).also { it.putExtra("NICK", nick) })
         }
 
         // Manejador de evento para la imagen de cerrar sesión
@@ -117,7 +117,7 @@ class PaginaPerfilAlumno : AppCompatActivity() {
 
         iv_logro.setOnClickListener {
             startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
     }
@@ -134,20 +134,11 @@ class PaginaPerfilAlumno : AppCompatActivity() {
                 Toast.makeText(this@PaginaPerfilAlumno, "La contraseña no puede estar vacía o ser menor de 6 caracteres", Toast.LENGTH_SHORT).show()
                 return@launch
             }
+            // Cambio de la contraseña del usuario en Firestore
+            val resultado = fireStore.cambiarContrasenaUsuario(contraCifrada, nick)
+            Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
 
-            // Obtención del usuario actual de FirebaseAuth
-            val usuarioActual = FirebaseAuth.getInstance().currentUser
-            if (usuarioActual != null) {
-                try {
-                    // Cambio de la contraseña del usuario en Firestore
-                    val resultado = fireStore.cambiarContrasenaUsuario(contraCifrada)
-                    Toast.makeText(this@PaginaPerfilAlumno, resultado, Toast.LENGTH_LONG).show()
-                } catch (e: Exception) {
-                    Toast.makeText(this@PaginaPerfilAlumno, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                Toast.makeText(this@PaginaPerfilAlumno, "No hay usuario autenticado. Por favor, inicie sesión.", Toast.LENGTH_LONG).show()
-            }
+
         }
     }
 

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.darlanota.R
 import com.example.darlanota.clases.FireStore
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,17 +35,20 @@ class PaginaPerfilProfe : AppCompatActivity() {
     private lateinit var imagenTema: ImageView
     private lateinit var campoContrasena: EditText
     private lateinit var textoNombre: TextView
-    private lateinit var id: String
+    private lateinit var nick: String
+    private lateinit var fireStore: FireStore
 
     // Método que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        FirebaseApp.initializeApp(this)
+
         setContentView(R.layout.perfil_profe_layout)
 
         // Inicialización de vistas y obtención del ID del intent
         inicializarVistas()
-        id = intent.getStringExtra("ID") ?: "ID_default"
+        nick = intent.getStringExtra("NICK") ?: "ID_default"
 
         // Carga de datos del usuario y configuración de los listeners
         cargarDatosUsuario()
@@ -66,9 +70,7 @@ class PaginaPerfilProfe : AppCompatActivity() {
     // Método para cargar los datos del usuario desde Firestore
     private fun cargarDatosUsuario() {
         CoroutineScope(Dispatchers.Main).launch {
-            val fireStore = FireStore()
-            val nombre = fireStore.obtenerNombreUsuario(id)
-            textoNombre.text = nombre ?: "Usuario Desconocido"
+            textoNombre.text = nick
         }
     }
 
@@ -77,38 +79,34 @@ class PaginaPerfilProfe : AppCompatActivity() {
         // Listener para el botón de cambiar contraseña
         botonCambiarContrasena.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
+                // Obtención de la nueva contraseña desde el EditText
                 val nuevaContrasena = campoContrasena.text.toString()
-                if (nuevaContrasena.isBlank()) {
-                    Toast.makeText(this@PaginaPerfilProfe, "La contraseña no puede estar vacía", Toast.LENGTH_SHORT).show()
+                val contraCifrada = cifrar(nuevaContrasena) // Cifrado de la contraseña
+
+                // Verificación de que la contraseña no esté vacía
+                if (contraCifrada.isBlank() || nuevaContrasena.length < 6) {
+                    Toast.makeText(this@PaginaPerfilProfe, "La contraseña no puede estar vacía o ser menor de 6 caracteres", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
+                // Cambio de la contraseña del usuario en Firestore
+                val resultado = fireStore.cambiarContrasenaUsuario(contraCifrada, nick)
+                Toast.makeText(this@PaginaPerfilProfe, resultado, Toast.LENGTH_LONG).show()
 
-                val usuarioActual = FirebaseAuth.getInstance().currentUser
-                if (usuarioActual != null) {
-                    try {
-                        val fireStore = FireStore()
-                        val resultado = fireStore.cambiarContrasenaUsuario(cifrar(nuevaContrasena))
-                        Toast.makeText(this@PaginaPerfilProfe, resultado, Toast.LENGTH_LONG).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(this@PaginaPerfilProfe, "Error al cambiar la contraseña: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                    }
-                } else {
-                    Toast.makeText(this@PaginaPerfilProfe, "No hay usuario autenticado. Por favor, inicie sesión.", Toast.LENGTH_LONG).show()
-                }
+
             }
         }
 
         // Listener para la imagen de actividades
         imagenActividades.setOnClickListener {
             startActivity(Intent(this, PaginaActividadProfe::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
 
         // Listener para la imagen de clasificación
         imagenClasificacion.setOnClickListener {
             startActivity(Intent(this, PaginaRankingProfe::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
 

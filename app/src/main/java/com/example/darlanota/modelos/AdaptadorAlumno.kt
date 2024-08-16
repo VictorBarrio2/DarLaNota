@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
+class AdaptadorAlumno(private val nick: String, dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
 
     private var dataList: List<Actividad> = dataList
@@ -65,7 +65,7 @@ class AdaptadorAlumno(private val id: String, dataList: List<Actividad>) :
             putExtra("TITULO", actividad.titulo)
             putExtra("DESCRIPCION", actividad.descripcion)
             putExtra("FECHA", fechaString)
-            putExtra("ID", id)
+            putExtra("NICK", nick)
         }
         holder.itemView.context.startActivity(intent)
     }

@@ -25,7 +25,7 @@ class PaginaLogrosAlumno: AppCompatActivity() {
     private lateinit var imagenLogro: ImageView
     private lateinit var imagenPerfil: ImageView
 
-    private lateinit var id: String
+    private lateinit var nick: String
     private lateinit var db: FireStore
 
     private lateinit var progressBar: ProgressBar
@@ -39,12 +39,12 @@ class PaginaLogrosAlumno: AppCompatActivity() {
 
         // Inicialización de vistas y obtención del ID del intent
         inicializarVistas()
-        id = intent.getStringExtra("ID") ?: "ID_default"
+        nick = intent.getStringExtra("NICK") ?: "ID_default"
         db = FireStore()
 
 
         CoroutineScope(Dispatchers.Main).launch {
-            puntuacion = db.devolverPuntuacion(id) ?: "Puntuacion no disponible"
+            puntuacion = db.devolverPuntuacion(nick) ?: "Puntuacion no disponible"
             Toast.makeText(this@PaginaLogrosAlumno, "La puntuacion es " + puntuacion, Toast.LENGTH_SHORT).show()
         }
 
@@ -63,7 +63,7 @@ class PaginaLogrosAlumno: AppCompatActivity() {
     private fun configurarListeners() {
         imagenPerfil.setOnClickListener {
             val intent = Intent(this, PaginaPerfilAlumno::class.java)
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             startActivity(intent)
         }
 
@@ -72,13 +72,13 @@ class PaginaLogrosAlumno: AppCompatActivity() {
 
         imagenActividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadAlumno::class.java)
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             startActivity(intent)
         }
 
         imagenClasificacion.setOnClickListener {
             val intent = Intent(this, PaginaRankingAlumno::class.java)
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             startActivity(intent)
         }
     }

@@ -35,7 +35,7 @@ class PaginaAltaActividad : AppCompatActivity() {
     private lateinit var ivPerfil: ImageView
     private lateinit var ivRanking: ImageView
     private lateinit var ivActividad: ImageView
-    private lateinit var id: String
+    private lateinit var nick: String
     private lateinit var spinner: Spinner
     private val options = listOf(
         R.drawable.nota to 1,
@@ -52,7 +52,7 @@ class PaginaAltaActividad : AppCompatActivity() {
         setContentView(R.layout.alta_actividad_layout)
         FirebaseApp.initializeApp(this)
 
-        id = intent.getStringExtra("ID") ?: ""
+        nick = intent.getStringExtra("NICK") ?: ""
         posSpinner = 1
         inicializarVistas()
         configurarListeners()
@@ -99,7 +99,7 @@ class PaginaAltaActividad : AppCompatActivity() {
                 descripcion = descripcion,
                 fechafin = fechaFin,
                 titulo = titulo,
-                id_profesor = intent.getStringExtra("ID") ?: "",
+                id_profesor = intent.getStringExtra("NICK") ?: "",
                 instrumento = instrumento
             )
             CoroutineScope(Dispatchers.Main).launch {
@@ -133,18 +133,18 @@ class PaginaAltaActividad : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaAltaActividad, PaginaPerfilProfe::class.java)
-                intent.putExtra("ID", id)  // Asegura que el ID se pase correctamente
+                intent.putExtra("NICK", nick)  // Asegura que el ID se pase correctamente
                 startActivity(intent)
             }
         }
         ivRanking.setOnClickListener {
             startActivity(Intent(this, PaginaRankingProfe::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
         ivActividad.setOnClickListener {
             startActivity(Intent(this, PaginaActividadProfe::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
     }

@@ -28,7 +28,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private lateinit var iv_perfil: ImageView
     private lateinit var iv_logro: ImageView
 
-    private lateinit var id: String
+    private lateinit var nick: String
     private val fireStore = FireStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +39,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
         inicializarVistas()
 
         // Obtener el ID del intent
-        id = intent.getStringExtra("ID").toString()
+        nick = intent.getStringExtra("NICK").toString()
 
         // Configurar listeners de los botones
         configurarListeners()
@@ -71,7 +71,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private fun configurarListeners() {
         iv_actividades.setOnClickListener {
             val intent = Intent(this, PaginaActividadAlumno::class.java)
-            intent.putExtra("ID", id)
+            intent.putExtra("NICK", nick)
             startActivity(intent)
         }
 
@@ -79,14 +79,14 @@ class PaginaRankingAlumno : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 delay(300)  // Retardo de 300 milisegundos para prevenir clicks fantasma
                 val intent = Intent(this@PaginaRankingAlumno, PaginaPerfilAlumno::class.java)
-                intent.putExtra("ID", id)
+                intent.putExtra("NICK", nick)
                 startActivity(intent)
             }
         }
 
         iv_logro.setOnClickListener {
             startActivity(Intent(this, PaginaLogrosAlumno::class.java).apply {
-                putExtra("ID", id)
+                putExtra("NICK", nick)
             })
         }
     }
@@ -95,7 +95,7 @@ class PaginaRankingAlumno : AppCompatActivity() {
     private fun cargarRanking() {
         CoroutineScope(Dispatchers.Main).launch {
             val ranking = withContext(Dispatchers.IO) { fireStore.obtenerRankingUsuarios() }
-            val nombreUsuario = withContext(Dispatchers.IO) { fireStore.obtenerNombreUsuario(id) }
+            val nombreUsuario = nick
             val posicion = ranking.indexOfFirst { it.first == nombreUsuario }
             val puntuacion = ranking.find { it.first == nombreUsuario }?.second
 

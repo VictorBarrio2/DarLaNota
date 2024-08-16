@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 
 class PaginaCorregirActividad : AppCompatActivity() {
 
-    // Declaración de variables UI y Firestore
     private lateinit var btnDescargar: Button
     private lateinit var btnCorregir: Button
     private lateinit var txtTitulo: TextView
@@ -25,35 +24,27 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private lateinit var imgRanking: ImageView
     private lateinit var spinnerAlumnos: Spinner
     private val firestore = FireStore()
-    private var mapaIdAlumno: MutableMap<String, String> = mutableMapOf()
     private lateinit var idActividad: String
-    private lateinit var id: String
-    private lateinit var id_alumno: String
+    private lateinit var nick: String
+    private lateinit var nombreAlumnoSeleccionado: String
 
-    // Método principal que se ejecuta al crear la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.corregir_actividad_layout)
 
-        // Obtener los datos pasados por intent
-        id = intent.getStringExtra("ID") ?: ""
+        nick = intent.getStringExtra("NICK") ?: ""
         idActividad = intent.getStringExtra("ACTIVIDAD_ID") ?: ""
 
-        // Configurar la interfaz de usuario
         configurarUI()
 
-        // Establecer el título de la actividad
         txtTitulo.text = intent.getStringExtra("TITULO") ?: ""
 
-        // Cargar la lista de estudiantes que han entregado la actividad
         lifecycleScope.launch {
             actualizarListaEstudiantes(idActividad)
         }
     }
 
-    // Método para configurar la interfaz de usuario
     private fun configurarUI() {
-        // Inicializar las vistas
         imgActividades = findViewById(R.id.iv_actividadesAlta)
         imgPerfil = findViewById(R.id.iv_perfilAlta)
         imgRanking = findViewById(R.id.iv_rankingAlta)
@@ -63,23 +54,16 @@ class PaginaCorregirActividad : AppCompatActivity() {
         btnCorregir = findViewById(R.id.bto_corregirActividad)
         spinnerAlumnos = findViewById(R.id.sp_alumnos)
 
-        // Configurar los listeners de los elementos de la interfaz de usuario
         configurarListeners()
     }
 
-    // Método para configurar los listeners de los elementos de la interfaz de usuario
     private fun configurarListeners() {
-        // Listener para el spinner de alumnos
         spinnerAlumnos.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                // Obtener el nombre y ID del alumno seleccionado
-                val nombreAlumno = parent.getItemAtPosition(position) as String
-                id_alumno = mapaIdAlumno[nombreAlumno].toString()
-                if (id_alumno != null) {
-                    // Cargar la calificación del alumno seleccionado
+                nombreAlumnoSeleccionado = parent.getItemAtPosition(position) as String
+                if (nombreAlumnoSeleccionado.isNotEmpty()) {
                     lifecycleScope.launch {
-                        val calificacion = firestore.obtenerCalificacion(idActividad, id_alumno)
-                        // Actualizar el estado de corrección basado en la calificación obtenida
+                        val calificacion = firestore.obtenerCalificacion(idActividad, nombreAlumnoSeleccionado)
                         txtCorregido.text = if (calificacion == null || calificacion < 0) {
                             "Calificado: No"
                         } else {
@@ -94,73 +78,62 @@ class PaginaCorregirActividad : AppCompatActivity() {
             }
         }
 
-        // Listener para el botón de descargar video
         btnDescargar.setOnClickListener {
-            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
-            id_alumno = mapaIdAlumno[nombreAlumnoSeleccionado].toString()
-            if (id_alumno != null && idActividad.isNotEmpty()) {
-                // Descargar el video del alumno seleccionado
+            if (nombreAlumnoSeleccionado.isNotEmpty() && idActividad.isNotEmpty()) {
                 lifecycleScope.launch {
-                    descargarVideo(idActividad, id_alumno)
+                    descargarVideo(idActividad, nombreAlumnoSeleccionado)
                 }
             }
         }
 
-        // Listener para el botón de corregir actividad
         btnCorregir.setOnClickListener {
-            val nombreAlumnoSeleccionado = spinnerAlumnos.selectedItem.toString()
-            val idAlumnoActual = mapaIdAlumno[nombreAlumnoSeleccionado]
-            if (idAlumnoActual != null) {
-                // Mostrar el fragmento de calificación
-                val fragmentoCalificar = FragmentoCalificar.newInstance(idAlumnoActual, idActividad)
+            if (nombreAlumnoSeleccionado.isNotEmpty()) {
+                val fragmentoCalificar = FragmentoCalificar.newInstance(nombreAlumnoSeleccionado, idActividad)
                 fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
                 txtCorregido.text = "Calificado: Sí"
             } else {
-                Toast.makeText(this, "Error: No se pudo obtener el ID del alumno.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error: No se pudo obtener el nombre del alumno.", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Listeners para las imágenes de navegación
         imgActividades.setOnClickListener {
-            startActivity(Intent(this, PaginaActividadProfe::class.java).also { it.putExtra("ID", id) })
+            startActivity(Intent(this, PaginaActividadProfe::class.java).also { it.putExtra("NICK", nick) })
         }
 
         imgPerfil.setOnClickListener {
-            startActivity(Intent(this, PaginaPerfilProfe::class.java).also { it.putExtra("ID", id) })
+            startActivity(Intent(this, PaginaPerfilProfe::class.java).also { it.putExtra("NICK", nick) })
         }
 
         imgRanking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingProfe::class.java).also { it.putExtra("ID", id) })
+            startActivity(Intent(this, PaginaRankingProfe::class.java).also { it.putExtra("NICK", nick) })
         }
     }
 
-    // Método para descargar el video de un alumno
-    private suspend fun descargarVideo(idActividad: String, idAlumno: String) {
+    private suspend fun descargarVideo(idActividad: String, nombreAlumno: String) {
         val videoPath = withContext(Dispatchers.IO) {
-            firestore.obtenerRutaVideo(idActividad, idAlumno)
+            firestore.obtenerRutaVideo(idActividad, nombreAlumno)
         }
+
         if (videoPath != null) {
+            Log.d("VideoDownload", "Ruta del video: $videoPath")
             try {
                 firestore.descargarVideo(this, videoPath)
                 Toast.makeText(this, "Video descargado en la galería", Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 Toast.makeText(this, "Error al descargar el video: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                Log.e("VideoDownload", "Error al descargar el video", e)
             }
         } else {
             Toast.makeText(this, "Ruta del video no encontrada", Toast.LENGTH_SHORT).show()
+            Log.d("VideoDownload", "Ruta del video es null")
         }
     }
 
-    // Método para actualizar la lista de estudiantes que han entregado la actividad
+
     private suspend fun actualizarListaEstudiantes(idActividad: String) {
-        val idsAlumnos = withContext(Dispatchers.IO) {
-            firestore.obtenerIdsDeAlumnosDeEntregasPorActividad(idActividad)
-        }
-        val nombresAlumnos = idsAlumnos.mapNotNull { id ->
-            firestore.obtenerNombreUsuario(id)?.let { nombre ->
-                mapaIdAlumno[nombre] = id
-                nombre
-            }
+        // Aquí cambiamos para utilizar el nuevo método `obtenerNombresDeEntregas`
+        val nombresAlumnos = withContext(Dispatchers.IO) {
+            firestore.obtenerNombresDeEntregas(idActividad)
         }
         withContext(Dispatchers.Main) {
             if (nombresAlumnos.isNotEmpty()) {

@@ -63,14 +63,13 @@ class FragmentoNota : DialogFragment() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val idUsuario = firestore.obtenerIdPorNombre(nombre)
-                if (idUsuario != null) {
+                if (nombre != null) {
                     val mensaje: String
                     if (esIncremento) {
-                        firestore.incrementarPuntuacionUsuario(idUsuario, nota)
+                        firestore.incrementarPuntuacionUsuario(nombre, nota)
                         mensaje = "Sumado $nota puntos a $nombre."
                     } else {
-                        firestore.decrementarPuntuacionAlumno(idUsuario, nota)
+                        firestore.decrementarPuntuacionAlumno(nombre, nota)
                         mensaje = "Restado $nota puntos a $nombre."
                     }
                     withContext(Dispatchers.Main) {

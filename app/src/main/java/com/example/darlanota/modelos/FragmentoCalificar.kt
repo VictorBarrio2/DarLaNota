@@ -21,14 +21,14 @@ class FragmentoCalificar : DialogFragment() {
     private var firestore = FireStore()
 
     companion object {
-        const val ARG_ID_ALUMNO = "idAlumno"
+        const val ARG_NICK_ALUMNO = "nickAlumno"
         const val ARG_ID_ACTIVIDAD = "idActividad"
 
         // Método para crear una nueva instancia del fragmento con argumentos
-        fun newInstance(idAlumno: String, idActividad: String): FragmentoCalificar {
+        fun newInstance(nickAlumno: String, idActividad: String): FragmentoCalificar {
             val fragment = FragmentoCalificar()
             val args = Bundle()
-            args.putString(ARG_ID_ALUMNO, idAlumno)
+            args.putString(ARG_NICK_ALUMNO, nickAlumno)
             args.putString(ARG_ID_ACTIVIDAD, idActividad)
             fragment.arguments = args
             return fragment
@@ -56,13 +56,13 @@ class FragmentoCalificar : DialogFragment() {
 
     // Método para configurar los listeners de los botones
     private fun configurarListeners(view: View) {
-        val idAlumno = obtenerArgumento(ARG_ID_ALUMNO)
+        val nickAlumno = obtenerArgumento(ARG_NICK_ALUMNO)
         val idActividad = obtenerArgumento(ARG_ID_ACTIVIDAD)
 
         btoEnviar.setOnClickListener {
             val notaText = etNota.text.toString()
             if (notaText.isNotEmpty()) {
-                procesarNota(notaText, idAlumno, idActividad)
+                procesarNota(notaText, nickAlumno, idActividad)
             } else {
                 mostrarMensaje("El campo de nota no puede estar vacío.")
             }
@@ -75,15 +75,15 @@ class FragmentoCalificar : DialogFragment() {
     }
 
     // Método para procesar la nota ingresada
-    private fun procesarNota(notaText: String, idAlumno: String, idActividad: String) {
+    private fun procesarNota(notaText: String, nickAlumno: String, idActividad: String) {
         try {
             val number = notaText.toInt()
             mostrarMensaje("Se ha puesto un $number")
 
             // Lanzar una coroutine para llamar a las funciones suspendidas
             lifecycleScope.launch {
-                if (idAlumno.isNotEmpty() && idActividad.isNotEmpty()) {
-                    actualizarPuntuacionYCalificacion(idAlumno, idActividad, number)
+                if (nickAlumno.isNotEmpty() && idActividad.isNotEmpty()) {
+                    actualizarPuntuacionYCalificacion(nickAlumno, idActividad, number)
                     dismiss() // Cerrar el diálogo después de actualizar la puntuación
                 } else {
                     mostrarMensaje("Error: ID de alumno o actividad no disponible.")
