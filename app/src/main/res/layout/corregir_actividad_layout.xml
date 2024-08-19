@@ -10,7 +10,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Titulo Actividad"
-        android:textSize="24sp"
+        android:textColor="@color/textColor"
+        android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,8 +20,9 @@
 
     <Spinner
         android:id="@+id/sp_alumnos"
-        android:layout_width="325dp"
+        android:layout_width="263dp"
         android:layout_height="54dp"
+        android:background="@drawable/fondo_spinner"
         android:scrollbarSize="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -64,6 +66,7 @@
         android:layout_height="50dp"
         android:text="Calificado: No"
         android:textAlignment="center"
+        android:textColor="@color/textColor"
         android:textSize="34sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -111,7 +114,7 @@
         app:srcCompat="@drawable/trofeo" />
 
     <ImageView
-        android:id="@+id/iv_rankingAlta"
+        android:id="@+id/iv_rankingCorregir"
         android:layout_width="87dp"
         android:layout_height="86dp"
         android:layout_marginEnd="10dp"
@@ -125,7 +128,7 @@
         app:srcCompat="@drawable/ranking" />
 
     <ImageView
-        android:id="@+id/iv_actividadesAlta"
+        android:id="@+id/iv_actividadesCorregir"
         android:layout_width="87dp"
         android:layout_height="86dp"
         android:layout_marginEnd="10dp"

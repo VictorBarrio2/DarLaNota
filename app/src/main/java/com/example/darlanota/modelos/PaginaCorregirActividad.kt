@@ -46,15 +46,15 @@ class PaginaCorregirActividad : AppCompatActivity() {
     }
 
     private fun configurarUI() {
-        imgActividades = findViewById(R.id.iv_actividadesAlta)
+        imgActividades = findViewById(R.id.iv_actividadesCorregir)
         imgPerfil = findViewById(R.id.iv_perfilAlta)
-        imgRanking = findViewById(R.id.iv_rankingAlta)
+        imgRanking = findViewById(R.id.iv_rankingCorregir)
         txtTitulo = findViewById(R.id.tv_tituloCorregir)
         txtCorregido = findViewById(R.id.tv_corregido)
         btnDescargar = findViewById(R.id.bto_descargarVideo)
         btnCorregir = findViewById(R.id.bto_corregirActividad)
         spinnerAlumnos = findViewById(R.id.sp_alumnos)
-        imgLogro = findViewById(R.id.iv_logroLogro)
+        imgLogro = findViewById(R.id.iv_logroCorregir)
 
         configurarListeners()
     }

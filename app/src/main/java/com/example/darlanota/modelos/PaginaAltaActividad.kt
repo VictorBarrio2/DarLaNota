@@ -20,6 +20,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.*
 import java.util.Calendar
+import java.util.Locale
 import kotlin.properties.Delegates
 
 class PaginaAltaActividad : AppCompatActivity() {
@@ -27,7 +28,7 @@ class PaginaAltaActividad : AppCompatActivity() {
     // Declaración de variables
     private var posSpinner: Int = 0
     private lateinit var btoSubirActividad: Button
-    private lateinit var btoFecha: Button
+    private lateinit var btoFecha: ImageView
     private lateinit var tvFecha: TextView
     private lateinit var etTitulo: EditText
     private lateinit var etDescripcion: EditText
@@ -63,7 +64,7 @@ class PaginaAltaActividad : AppCompatActivity() {
     private fun inicializarVistas() {
         btoSubirActividad = findViewById(R.id.bto_subirActividad)
         tvFecha = findViewById(R.id.tv_fecha)
-        btoFecha = findViewById(R.id.bto_fecha)
+        btoFecha = findViewById(R.id.iv_fecha)
         etTitulo = findViewById(R.id.et_tituloAlta)
         etDescripcion = findViewById(R.id.et_descripcionAlta)
         ivPerfil = findViewById(R.id.iv_perfilAltaAc)
@@ -119,13 +120,34 @@ class PaginaAltaActividad : AppCompatActivity() {
     // Muestra el DatePicker para seleccionar la fecha
     private fun mostrarDatePicker() {
         val calendar = Calendar.getInstance()
-        DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
-            fechaSeleccionada = Calendar.getInstance().apply {
-                set(year, monthOfYear, dayOfMonth)
-            }
-            tvFecha.text = String.format("%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+
+        // Establecer la configuración regional en español
+        val locale = Locale("es", "ES")
+        Locale.setDefault(locale)
+
+        val datePickerDialog = DatePickerDialog(
+            this,
+            android.R.style.Theme_Holo_Light_Dialog_MinWidth, // Tema claro por defecto
+            { _, year, monthOfYear, dayOfMonth ->
+                fechaSeleccionada = Calendar.getInstance().apply {
+                    set(year, monthOfYear, dayOfMonth)
+                }
+                tvFecha.text = String.format("%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        // Establecer fondo transparente para el diálogo
+        datePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        // Mostrar el diálogo
+        datePickerDialog.show()
     }
+
+
+
 
     // Configura los listeners para las imágenes
     private fun setImageViewListeners() {
