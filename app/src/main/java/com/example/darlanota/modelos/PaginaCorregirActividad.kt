@@ -22,6 +22,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private lateinit var imgPerfil: ImageView
     private lateinit var imgActividades: ImageView
     private lateinit var imgRanking: ImageView
+    private lateinit var imgLogro: ImageView
     private lateinit var spinnerAlumnos: Spinner
     private val firestore = FireStore()
     private lateinit var idActividad: String
@@ -53,6 +54,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
         btnDescargar = findViewById(R.id.bto_descargarVideo)
         btnCorregir = findViewById(R.id.bto_corregirActividad)
         spinnerAlumnos = findViewById(R.id.sp_alumnos)
+        imgLogro = findViewById(R.id.iv_logroLogro)
 
         configurarListeners()
     }
@@ -106,6 +108,10 @@ class PaginaCorregirActividad : AppCompatActivity() {
 
         imgRanking.setOnClickListener {
             startActivity(Intent(this, PaginaRankingProfe::class.java).also { it.putExtra("NICK", nick) })
+        }
+
+        imgLogro.setOnClickListener {
+
         }
     }
 

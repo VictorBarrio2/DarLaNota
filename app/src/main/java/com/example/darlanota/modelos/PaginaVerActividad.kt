@@ -60,7 +60,7 @@ class PaginaVerActividad : AppCompatActivity() {
         fechaCierre = findViewById(R.id.tv_fechaCierre)
         iconoPerfil = findViewById(R.id.iv_perfilVer)
         iconoRanking = findViewById(R.id.iv_rankingVer)
-        iv_logro = findViewById(R.id.iv_logoVerActividades)
+        iv_logro = findViewById(R.id.logroVerActividad)
         botonSubirVideo = findViewById(R.id.bto_subirVideo)
 
         // Obtener los datos pasados desde la actividad anterior
