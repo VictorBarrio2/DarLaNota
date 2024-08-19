@@ -25,16 +25,21 @@
 
     <TextView
         android:id="@+id/tv_descripcionVer"
-        android:layout_width="283dp"
-        android:layout_height="218dp"
+        android:layout_width="295dp"
+        android:layout_height="243dp"
+        android:background="@drawable/edittext_background_selector"
+        android:textColor="@color/edittext_text_selector"
+        android:ems="10"
+        android:padding="16dp"
         android:text="Descripción:\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nam eu est suscipit, vestibulum urna et, fermentum nunc. Curabitur eu tincidunt erat. Aliquam iaculis massa molestie commodo lobortis. Sed ullamcorper porta est."
-        android:textColor="@color/textColor"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.415" />
+        app:layout_constraintVertical_bias="0.373" />
+
 
     <Button
         android:id="@+id/bto_subirVideo"
