@@ -17,6 +17,18 @@ import java.util.Locale
 
 class AdaptadorAlumno(private val nick: String, dataList: List<Actividad>) :
     RecyclerView.Adapter<AdaptadorAlumno.DatosHolder>() {
+    private val instrumentos = listOf(
+        R.drawable.nota to 1,
+        R.drawable.piano to 2,
+        R.drawable.guitarra to 3,
+        R.drawable.bateria to 4,
+        R.drawable.canto to 5
+    )
+
+    private val candados = listOf(
+        R.drawable.candado_abierto to 1,
+        R.drawable.candado_cerrado to 2
+    )
 
     private var dataList: List<Actividad> = dataList
         set(value) {
@@ -26,10 +38,6 @@ class AdaptadorAlumno(private val nick: String, dataList: List<Actividad>) :
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy")
 
-    init {
-        // Preprocesa la lista para eliminar actividades pasadas
-        this.dataList = dataList.filterNot { it.fechafin?.toDate()?.before(Date()) ?: false }
-    }
 
     // Método para crear nuevas vistas (invocado por el layout manager)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DatosHolder {
@@ -38,23 +46,39 @@ class AdaptadorAlumno(private val nick: String, dataList: List<Actividad>) :
     }
 
     // Método para reemplazar el contenido de una vista (invocado por el layout manager)
+    // Método para reemplazar el contenido de una vista (invocado por el layout manager)
     override fun onBindViewHolder(holder: DatosHolder, position: Int) {
         val actividad = dataList[position]
         holder.titulo.text = actividad.titulo
 
-        // Establecer el listener para el clic en la vista del elemento
+        // Suponiendo que el objeto Actividad tiene un atributo que indica el número del instrumento
+        val numeroInstrumento = actividad.instrumento // Cambia esto por el nombre correcto del atributo
+
+        // Buscar la imagen correspondiente al número del instrumento
+        val instrumentoImagen = instrumentos.find { it.second == numeroInstrumento }?.first ?: R.drawable.nota
+
+        // Establecer la imagen del instrumento en el ImageView
+        holder.instrument.setImageResource(instrumentoImagen)
+
+        // Obtener la fecha de fin de la actividad
         val fechaFin = actividad.fechafin?.toDate()
-        val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val fechaFormateada = fechaFin?.let { formatoFecha.format(it) } ?: "Sin fecha"
 
-        holder.fecha.text = fechaFormateada
+        // Obtener la fecha actual
+        val fechaActual = Date()
 
-        // Establecer el listener para el clic en la vista del elemento
-        holder.itemView.setOnClickListener {
-            iniciarPaginaVerActividad(holder, actividad, fechaFormateada)
+        // Establecer la imagen del candado y el listener según la fecha
+        if (fechaFin != null && fechaActual.after(fechaFin)) {
+            holder.candado.setImageResource(R.drawable.candado_cerrado)
+            holder.itemView.setOnClickListener(null) // Desactivar el listener
+        } else {
+            holder.candado.setImageResource(R.drawable.candado_abierto)
+            holder.itemView.setOnClickListener {
+                val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val fechaFormateada = fechaFin?.let { formatoFecha.format(it) } ?: "Sin fecha"
+                iniciarPaginaVerActividad(holder, actividad, fechaFormateada)
+            }
         }
     }
-
     // Método para obtener el tamaño de la lista de datos (invocado por el layout manager)
     override fun getItemCount(): Int = dataList.size
 
@@ -73,6 +97,7 @@ class AdaptadorAlumno(private val nick: String, dataList: List<Actividad>) :
     // Clase interna que describe la vista del elemento y los metadatos sobre su lugar en el RecyclerView
     class DatosHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var titulo: TextView = itemView.findViewById(R.id.tv_tituloActividades)
-        var fecha : TextView = itemView.findViewById(R.id.tv_fechaAct)
+        var instrument : ImageView = itemView.findViewById(R.id.iv_itemInstrumento)
+        var candado : ImageView = itemView.findViewById(R.id.iv_itemCandado)
     }
 }

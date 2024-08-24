@@ -168,6 +168,13 @@ class PaginaPerfilAlumno : AppCompatActivity() {
         }
     }
 
+    private fun cerrarSesion() {
+        limpiarPreferenciasLogin() // Asegúrate de limpiar las preferencias antes de cerrar sesión
+        finishAffinity() // Cierra todas las actividades
+        startActivity(Intent(this, PaginaLogin::class.java)) // Redirige a la página de inicio de sesión
+    }
+
+
     // Método para aplicar la imagen del tema basado en las preferencias
     private fun aplicarImagenTema() {
         val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
@@ -178,13 +185,6 @@ class PaginaPerfilAlumno : AppCompatActivity() {
             imagenTema.setImageResource(R.drawable.sol)
         }
     }
-
-    // Método para cerrar la sesión del usuario
-    private fun cerrarSesion() {
-        finishAffinity() // Cierra todas las actividades
-        startActivity(Intent(this, PaginaLogin::class.java)) // Redirige a la página de inicio de sesión
-    }
-
     // Método para cifrar datos
     private fun cifrar(dato: String): String {
         val clave = generarClave()

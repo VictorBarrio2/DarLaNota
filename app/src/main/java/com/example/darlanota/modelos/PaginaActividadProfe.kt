@@ -15,6 +15,7 @@ import com.example.darlanota.R
 import com.example.darlanota.clases.Actividad
 import com.example.darlanota.clases.FireStore
 import kotlinx.coroutines.*
+import java.util.Calendar
 import java.util.Date
 
 class PaginaActividadProfe : AppCompatActivity() {
@@ -92,11 +93,8 @@ class PaginaActividadProfe : AppCompatActivity() {
             try {
                 val actividadesList = withContext(Dispatchers.IO) { fireStore.cargarActividades() }
 
-                // Filtra actividades pasadas y las elimina
-                val actividadesValidas = filtrarYEliminarActividadesPasadas(actividadesList, num)
-
-                // Ordena las actividades válidas por fecha de finalización, de más pronto a más tardío
-                val actividadesOrdenadas = actividadesValidas.sortedBy { it.fechafin?.toDate() }
+                // Filtra actividades pasadas y las organiza
+                val actividadesOrdenadas = filtrarYEliminarActividadesPasadas(actividadesList, num)
 
                 // Configura el adaptador con las actividades válidas y ordenadas
                 configurarAdaptador(actividadesOrdenadas, id.toString())
@@ -108,28 +106,47 @@ class PaginaActividadProfe : AppCompatActivity() {
     }
 
 
+
     // Método para filtrar y eliminar actividades pasadas
-    private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>, num : Int): List<Actividad> {
-        return actividadesList.filter { actividad ->
+    // Método para filtrar y eliminar actividades pasadas
+    private suspend fun filtrarYEliminarActividadesPasadas(actividadesList: List<Actividad>, num: Int): List<Actividad> {
+        val fechaActual = Date()
+
+        val actividadesValidas = mutableListOf<Actividad>()
+        val actividadesConMargen = mutableListOf<Actividad>()
+
+        actividadesList.forEach { actividad ->
             val fechaFin = actividad.fechafin?.toDate()
 
-            if (fechaFin != null && fechaFin.before(Date())) {
-                // Eliminar actividades pasadas
-                withContext(Dispatchers.IO) {
-                    fireStore.eliminarActividad(actividad.id)
-                }
-                false
-            } else {
-                if (num == 1) {
-                    // Si el número es 0, incluir todas las actividades no pasadas
-                    true
+            if (fechaFin != null) {
+                val cincoDiasDespues = Calendar.getInstance().apply {
+                    time = fechaFin
+                    add(Calendar.DAY_OF_YEAR, 5)
+                }.time
+
+                if (cincoDiasDespues.before(fechaActual)) {
+                    // Eliminar actividades que hayan pasado más de 5 días después de la fecha de fin
+                    withContext(Dispatchers.IO) {
+                        fireStore.eliminarActividad(actividad.id)
+                    }
+                } else if (fechaFin.before(fechaActual)) {
+                    // Si ha pasado la fecha actual pero no 5 días, mover al final de la lista
+                    actividadesConMargen.add(actividad)
                 } else {
-                    // Incluir solo las actividades que coincidan con el número de instrumento
-                    actividad.instrumento == num
+                    // Actividades válidas que no han pasado la fecha actual ni el margen de 5 días
+                    actividadesValidas.add(actividad)
                 }
+            } else {
+                // Actividades sin fecha de fin se consideran válidas
+                actividadesValidas.add(actividad)
             }
         }
+
+        // Combina las listas, con actividades dentro del margen de 5 días al final
+        return actividadesValidas + actividadesConMargen
     }
+
+
 
     // Método para configurar el adaptador del RecyclerView
     private fun configurarAdaptador(actividadesValidas: List<Actividad>, id: String) {

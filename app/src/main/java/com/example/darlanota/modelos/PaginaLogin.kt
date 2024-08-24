@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.util.Base64
 import android.util.Log
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import kotlinx.coroutines.withContext
 import java.security.Key
 import javax.crypto.Cipher
@@ -28,7 +31,7 @@ import javax.crypto.spec.SecretKeySpec
 private const val ALGORITMO = "AES"
 private const val CLAVE = "claveSegura12345"
 
-class PaginaLogin : AppCompatActivity() {
+class PaginaLogin : AppCompatActivity(){
 
     private lateinit var etNick: EditText
     private lateinit var etContra: EditText
@@ -40,27 +43,27 @@ class PaginaLogin : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         sharedPreferences = getSharedPreferences("login_preferences", Context.MODE_PRIVATE)
-
         aplicarTemaGuardado()
+        FirebaseApp.initializeApp(this)
 
+        db = FirebaseFirestore.getInstance()
         val guardarCredenciales = sharedPreferences.getBoolean("guardar_credenciales", false)
         if (guardarCredenciales) {
             val nick = sharedPreferences.getString("nick", "")
-            val contra = sharedPreferences.getString("contraseña", "")
+            val contra = sharedPreferences.getString("contrasena", "")
             if (!nick.isNullOrEmpty() && !contra.isNullOrEmpty()) {
                 iniciarSesion(nick, contra)
             }
         }
-        setContentView(R.layout.login_layout)
-        FirebaseApp.initializeApp(this)
 
-        db = FirebaseFirestore.getInstance()
+        setContentView(R.layout.login_layout)
 
         inicializarVistas()
         cargarCredenciales()
     }
+
+
 
     private fun inicializarVistas() {
         etNick = findViewById(R.id.et_nick)
@@ -89,8 +92,6 @@ class PaginaLogin : AppCompatActivity() {
         }
 
         val contraCifrada = cifrar(contra)
-        Log.d("Debug", "Contraseña ingresada: $contra")
-        Log.d("Debug", "Contraseña cifrada: $contraCifrada")
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -100,8 +101,6 @@ class PaginaLogin : AppCompatActivity() {
                     .get()
                     .await()
 
-                Log.d("Debug", "Número de documentos encontrados: ${query.size()}")
-
                 if (query.isEmpty) {
                     withContext(Dispatchers.Main) {
                         mostrarAlerta("Error de inicio de sesión", "Nombre de usuario o contraseña incorrectos.")
@@ -109,8 +108,10 @@ class PaginaLogin : AppCompatActivity() {
                 } else {
                     val usuario = query.documents.first()
                     val id = usuario.id
-                    withContext(Dispatchers.Main) {
-                        guardarCredenciales(nick, contraCifrada)
+                    if(cbInicioAutomatico.isChecked){
+                        withContext(Dispatchers.Main) {
+                            guardarCredenciales(nick, contra)
+                        }
                     }
                     determinarTipoUsuarioYRedirigir(id, nick)
                 }
@@ -123,17 +124,18 @@ class PaginaLogin : AppCompatActivity() {
     }
 
 
-
+    // Método para mostrar alertas
     private fun mostrarAlerta(titulo: String, mensaje: String) {
-        AlertDialog.Builder(this).apply {
-            setTitle(titulo)
-            setMessage(mensaje)
-            setPositiveButton("Aceptar", null)
-            create()
-            show()
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            AlertDialog.Builder(this).apply {
+                setTitle(titulo)
+                setMessage(mensaje)
+                setPositiveButton("Aceptar", null)
+                create()
+                show()
+            }
         }
     }
-
 
     private fun guardarCredenciales(nick: String, contra: String) {
         if (cbInicioAutomatico.isChecked) {
@@ -147,6 +149,7 @@ class PaginaLogin : AppCompatActivity() {
             sharedPreferences.edit().clear().apply()
         }
     }
+
 
     private fun determinarTipoUsuarioYRedirigir(id: String, nombre: String) {
         CoroutineScope(Dispatchers.Main).launch {
@@ -174,6 +177,7 @@ class PaginaLogin : AppCompatActivity() {
             }
         }
     }
+
 
     private fun aplicarTemaGuardado() {
         val prefs = getSharedPreferences("preferencias_tema", MODE_PRIVATE)
