@@ -22,29 +22,15 @@
         android:id="@+id/sp_alumnos"
         android:layout_width="263dp"
         android:layout_height="54dp"
-        android:background="@drawable/fondo_spinner"
+        android:background="@drawable/edittext_background"
         android:scrollbarSize="10dp"
+        android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.264" />
-
-    <Button
-        android:id="@+id/bto_descargarVideo"
-        android:layout_width="306dp"
-        android:layout_height="66dp"
-        android:backgroundTint="#EB1C24"
-        android:text="Descargar Video"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.427" />
 
     <Button
         android:id="@+id/bto_corregirActividad"
@@ -56,9 +42,10 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.59" />
+        app:layout_constraintVertical_bias="0.631" />
 
     <TextView
         android:id="@+id/tv_corregido"
@@ -140,5 +127,41 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.951"
         app:srcCompat="@drawable/actividades" />
+
+    <ImageView
+        android:id="@+id/bto_cambiarFecha"
+        android:layout_width="91dp"
+        android:layout_height="91dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.725"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.439"
+        app:srcCompat="@drawable/entrega" />
+
+    <ImageView
+        android:id="@+id/bto_descargarVideo"
+        android:layout_width="91dp"
+        android:layout_height="91dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.275"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.439"
+        app:srcCompat="@drawable/descarga" />
+
+    <ImageView
+        android:id="@+id/bto_borrarActividad"
+        android:layout_width="70dp"
+        android:layout_height="64dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.906"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.058"
+        app:srcCompat="@drawable/basura" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

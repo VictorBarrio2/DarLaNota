@@ -1,21 +1,30 @@
 package com.example.darlanota.modelos
 
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.darlanota.R
 import com.example.darlanota.clases.FireStore
+import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class PaginaCorregirActividad : AppCompatActivity() {
 
-    private lateinit var btnDescargar: Button
+    // Definiciones de las variables de la clase
+    private lateinit var btnDescargar: ImageView
+    private lateinit var btnBorrar: ImageView
+    private lateinit var btnCambiarFecha: ImageView
     private lateinit var btnCorregir: Button
     private lateinit var txtTitulo: TextView
     private lateinit var txtCorregido: TextView
@@ -28,10 +37,12 @@ class PaginaCorregirActividad : AppCompatActivity() {
     private lateinit var idActividad: String
     private lateinit var nick: String
     private lateinit var nombreAlumnoSeleccionado: String
+    private var fechaSeleccionada: Calendar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.corregir_actividad_layout)
+        FirebaseApp.initializeApp(this)
 
         nick = intent.getStringExtra("NICK") ?: ""
         idActividad = intent.getStringExtra("ACTIVIDAD_ID") ?: ""
@@ -53,6 +64,8 @@ class PaginaCorregirActividad : AppCompatActivity() {
         txtCorregido = findViewById(R.id.tv_corregido)
         btnDescargar = findViewById(R.id.bto_descargarVideo)
         btnCorregir = findViewById(R.id.bto_corregirActividad)
+        btnBorrar = findViewById(R.id.bto_borrarActividad)
+        btnCambiarFecha = findViewById(R.id.bto_cambiarFecha)
         spinnerAlumnos = findViewById(R.id.sp_alumnos)
         imgLogro = findViewById(R.id.iv_logroCorregir)
 
@@ -65,12 +78,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
                 nombreAlumnoSeleccionado = parent.getItemAtPosition(position) as String
                 if (nombreAlumnoSeleccionado.isNotEmpty()) {
                     lifecycleScope.launch {
-                        val calificacion = firestore.obtenerCalificacion(idActividad, nombreAlumnoSeleccionado)
-                        txtCorregido.text = if (calificacion == null || calificacion < 0) {
-                            "Calificado: No"
-                        } else {
-                            "Calificado: Sí"
-                        }
+                        obtenerNotaAlumnoPorActividad(idActividad, nombreAlumnoSeleccionado)
                     }
                 }
             }
@@ -85,6 +93,8 @@ class PaginaCorregirActividad : AppCompatActivity() {
                 lifecycleScope.launch {
                     descargarVideo(idActividad, nombreAlumnoSeleccionado)
                 }
+            } else {
+                Toast.makeText(this, "Error: Seleccione un alumno y una actividad válida.", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -92,27 +102,96 @@ class PaginaCorregirActividad : AppCompatActivity() {
             if (nombreAlumnoSeleccionado.isNotEmpty()) {
                 val fragmentoCalificar = FragmentoCalificar.newInstance(nombreAlumnoSeleccionado, idActividad)
                 fragmentoCalificar.show(supportFragmentManager, "fragmento_corregir")
-                txtCorregido.text = "Calificado: Sí"
             } else {
-                Toast.makeText(this, "Error: No se pudo obtener el nombre del alumno.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error: Seleccione un alumno.", Toast.LENGTH_SHORT).show()
             }
         }
 
+        btnBorrar.setOnClickListener {
+            val builder = AlertDialog.Builder(this)
+
+            // Crear el diálogo de confirmación
+            builder.setTitle("Confirmación de eliminación")
+                .setMessage("¿Estás seguro de que deseas eliminar esta actividad? Esta acción no se puede deshacer.")
+                .setPositiveButton("Sí") { dialog, _ ->
+                    lifecycleScope.launch {
+                        withContext(Dispatchers.IO) {
+                            firestore.eliminarActividad(idActividad)
+                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@PaginaCorregirActividad, "Actividad eliminada.", Toast.LENGTH_SHORT).show()
+                            finish()
+                        }
+                    }
+                    dialog.dismiss() // Cerrar el diálogo
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss() // Cerrar el diálogo
+                }
+
+            // Crear y mostrar el diálogo
+            val alertDialog = builder.create()
+
+            // Mostrar el diálogo antes de modificar el color de los botones
+            alertDialog.setOnShowListener {
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(resources.getColor(R.color.textColor, theme))
+                alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(resources.getColor(R.color.textColor, theme))
+            }
+
+            alertDialog.show()
+        }
+
+
+
+        btnCambiarFecha.setOnClickListener {
+            mostrarDatePicker()
+        }
+
         imgActividades.setOnClickListener {
-            startActivity(Intent(this, PaginaActividadProfe::class.java).also { it.putExtra("NICK", nick) })
+            startActivity(Intent(this, PaginaActividadProfe::class.java).apply {
+                putExtra("NICK", nick)
+            })
         }
 
         imgPerfil.setOnClickListener {
-            startActivity(Intent(this, PaginaPerfilProfe::class.java).also { it.putExtra("NICK", nick) })
+            startActivity(Intent(this, PaginaPerfilProfe::class.java).apply {
+                putExtra("NICK", nick)
+            })
         }
 
         imgRanking.setOnClickListener {
-            startActivity(Intent(this, PaginaRankingProfe::class.java).also { it.putExtra("NICK", nick) })
+            startActivity(Intent(this, PaginaRankingProfe::class.java).apply {
+                putExtra("NICK", nick)
+            })
         }
 
         imgLogro.setOnClickListener {
-
+            // Acciones futuras
         }
+    }
+
+    private fun mostrarDatePicker() {
+        val calendar = Calendar.getInstance()
+
+        val locale = Locale("es", "ES")
+        Locale.setDefault(locale)
+
+        val datePickerDialog = DatePickerDialog(
+            this,
+            android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+            { _, year, monthOfYear, dayOfMonth ->
+                fechaSeleccionada = Calendar.getInstance().apply {
+                    set(year, monthOfYear, dayOfMonth)
+                }
+                cambiarFechaEntregaActividad(idActividad, fechaSeleccionada!!.time)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        datePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        datePickerDialog.show()
     }
 
     private suspend fun descargarVideo(idActividad: String, nombreAlumno: String) {
@@ -135,9 +214,7 @@ class PaginaCorregirActividad : AppCompatActivity() {
         }
     }
 
-
     private suspend fun actualizarListaEstudiantes(idActividad: String) {
-        // Aquí cambiamos para utilizar el nuevo método `obtenerNombresDeEntregas`
         val nombresAlumnos = withContext(Dispatchers.IO) {
             firestore.obtenerNombresDeEntregas(idActividad)
         }
@@ -151,4 +228,31 @@ class PaginaCorregirActividad : AppCompatActivity() {
             }
         }
     }
+
+    // Método actualizado: obtenerNotaAlumnoPorActividad
+    private suspend fun obtenerNotaAlumnoPorActividad(idActividad: String, nombreAlumno: String) {
+        val calificacion = withContext(Dispatchers.IO) {
+            firestore.obtenerCalificacion(idActividad, nombreAlumno)
+        }
+
+        withContext(Dispatchers.Main) {
+            txtCorregido.text = if (calificacion == null || calificacion < 0) {
+                "Nota: No calificado"
+            } else {
+                "Nota: $calificacion"
+            }
+        }
+    }
+
+    // Método agregado: cambiarFechaEntregaActividad
+    private fun cambiarFechaEntregaActividad(idActividad: String, nuevaFecha: Date) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                firestore.cambiarFechaActividad(idActividad, nuevaFecha)
+            }
+            Toast.makeText(this@PaginaCorregirActividad, "Fecha de entrega actualizada.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
 }

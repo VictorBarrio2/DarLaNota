@@ -365,6 +365,35 @@ class FireStore {
         }
     }
 
+    suspend fun cambiarFechaActividad(idActividad: String, nuevaFecha: Date) = withContext(Dispatchers.IO) {
+        try {
+            val actividadRef = db.collection("actividades").document(idActividad)
+            actividadRef.update("fechafin", nuevaFecha).await()
+            Log.d("Firestore", "Fecha de la actividad actualizada correctamente")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al cambiar la fecha de la actividad: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al cambiar la fecha de la actividad: ${e.localizedMessage}")
+        }
+    }
+    suspend fun obtenerNotaAlumnoPorActividad(idActividad: String, nombreAlumno: String): Int? = withContext(Dispatchers.IO) {
+        try {
+            // Obtener el documento de la actividad
+            val actividadDoc = db.collection("actividades").document(idActividad).get().await()
+
+            // Obtener la lista de entregas asociadas a la actividad
+            val entregas = actividadDoc.get("entregas") as? List<Map<String, Any>>
+
+            // Buscar la entrega correspondiente al alumno especificado
+            val entrega = entregas?.find { it["nickAlumno"] == nombreAlumno }
+
+            // Devolver la calificación si existe
+            entrega?.get("calificacion") as? Int
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al obtener la nota del alumno: ${e.localizedMessage}", e)
+            registrarIncidencia("Error al obtener la nota del alumno: ${e.localizedMessage}")
+            null
+        }
+    }
 
 
     suspend fun obtenerRankingUsuarios(): List<Pair<String, Long>> = withContext(Dispatchers.IO) {

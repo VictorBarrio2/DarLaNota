@@ -96,10 +96,11 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.057" />
 
+
     <TextView
         android:id="@+id/tv_fechaCierre"
-        android:layout_width="178dp"
-        android:layout_height="25dp"
+        android:layout_width="171dp"
+        android:layout_height="27dp"
         android:text="Fecha cierre: --/--/----"
         android:textColor="@color/textColor"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -107,8 +108,7 @@
         app:layout_constraintHorizontal_bias="0.891"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.101" />
-
+        app:layout_constraintVertical_bias="0.093" />
 
     <TextView
         android:id="@+id/textView3"

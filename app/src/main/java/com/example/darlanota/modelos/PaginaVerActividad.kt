@@ -114,12 +114,12 @@ class PaginaVerActividad : AppCompatActivity() {
                 val actividadRef = firestoreService.db.collection("actividades").document(id_actividad)
                 val actividadSnapshot = actividadRef.get().await()
                 val entregas = actividadSnapshot.get("entregas") as? ArrayList<HashMap<String, Any>> ?: ArrayList()
-                val entregaMap = entregas.find { it["idAlumno"] == nick }
+                val entregaMap = entregas.find { it["nickAlumno"] == nick }
 
                 // Verificar si ya existe una entrega
                 if (entregaMap != null) {
                     val entrega = Entrega(
-                        nickAlumno = entregaMap["idAlumno"] as String,
+                        nickAlumno = entregaMap["nickAlumno"] as String,
                         video = entregaMap["video"] as String,
                         calificacion = (entregaMap["calificacion"] as Long).toInt()
                     )
